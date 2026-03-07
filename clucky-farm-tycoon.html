@@ -58,6 +58,48 @@
       color: var(--text);
     }
 
+    /* ══ LEVEL BANNER ══ */
+    #levelBanner {
+      background: linear-gradient(90deg, #2D3F1E, #3D5429);
+      border-bottom: 2px solid var(--gold2);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .lb-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lb-badge {
+      background: var(--gold);
+      color: #3A2800;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1em;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .lb-goal {
+      font-size: .75em;
+      color: var(--text);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .lb-progress {
+      font-family: 'Syne', sans-serif;
+      font-size: .9em;
+      font-weight: 700;
+      color: var(--gold3);
+    }
+
     /* ══ SCROLLBAR ══ */
     ::-webkit-scrollbar {
       width: 4px;
@@ -1061,6 +1103,15 @@
 <body>
   <div id="app">
 
+    <!-- LEVEL BANNER -->
+    <div id="levelBanner">
+      <div class="lb-left">
+        <div class="lb-badge" id="lbLevel">Lv 1</div>
+        <div class="lb-goal" id="lbDesc">Loading goal...</div>
+      </div>
+      <div class="lb-progress" id="lbProgress">0%</div>
+    </div>
+
     <!-- TAB BAR -->
     <div id="tabBar">
       <div class="tab active" onclick="switchTab('farm')" id="tab-farm">
@@ -1198,6 +1249,7 @@
     // ══════════════════════════════════════════════════════
     const DEF = {
       cash: 300, day: 1, tick: 0, season: 0,
+      level: 1, levelReqs: [],
       totalRevenue: 0, totalExpenses: 0, lifetimeEggs: 0,
       prestige: 0, prestigeMult: 1,
 
@@ -1411,6 +1463,9 @@
 
       // Auto-staff actions
       autoStaffActions();
+
+      // Check level progress
+      if (G.tick % 2 === 0) checkLevelProgress();
 
       // Update UI
       updateUI();
@@ -1871,6 +1926,20 @@
       // Contract timer
       const soonest = G.contracts.filter(c => !c.accepted).sort((a, b) => a.ticksLeft - b.ticksLeft)[0];
       if (soonest) document.getElementById('contractTimer').textContent = `Next expires in ${Math.floor(soonest.ticksLeft / 60)}m ${soonest.ticksLeft % 60}s`;
+
+      // Level Banner
+      document.getElementById('lbLevel').textContent = `Lv ${G.level || 1}`;
+      if (!G.levelReqs || G.levelReqs.length === 0) return;
+
+      const req = G.levelReqs[0];
+      let currentVal = 0;
+      if (req.type === 'cash') currentVal = G.cash;
+      if (req.type === 'revenue') currentVal = G.totalRevenue;
+      if (req.type === 'item') currentVal = G.inv[req.target] || 0;
+
+      document.getElementById('lbDesc').textContent = req.desc;
+      const pct = Math.min(100, Math.floor((currentVal / req.amount) * 100));
+      document.getElementById('lbProgress').textContent = `${pct}%`;
     }
 
     function renderFarm() {
@@ -2328,10 +2397,119 @@
     }
 
     // ══════════════════════════════════════════════════════
+    //  LEVELING SYSTEM
+    // ══════════════════════════════════════════════════════
+    function generateLevelGoals() {
+      if (!G.level) G.level = 1;
+      const lvl = G.level;
+
+      // Scale requirements exponentially
+      const reqs = [];
+      if (lvl === 1) {
+        reqs.push({ type: 'revenue', amount: 2000, desc: 'Earn $2,000 Total Revenue' });
+      } else if (lvl === 2) {
+        reqs.push({ type: 'cash', amount: 3000, desc: 'Save $3,000 Cash on hand' });
+      } else {
+        const typeRoll = Math.random();
+        if (typeRoll < 0.33) {
+          const targetRev = Math.floor(2000 * Math.pow(1.6, lvl - 1));
+          reqs.push({ type: 'revenue', amount: targetRev, desc: `Earn $${targetRev.toLocaleString()} Total Revenue` });
+        } else if (typeRoll < 0.66) {
+          const targetCash = Math.floor(1500 * Math.pow(1.6, lvl - 1));
+          reqs.push({ type: 'cash', amount: targetCash, desc: `Save $${targetCash.toLocaleString()} Cash on hand` });
+        } else {
+          // Item hoarding
+          const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
+          const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
+          const targetQty = Math.floor(5 * Math.pow(1.4, lvl - 2));
+          reqs.push({ type: 'item', target: targetItem, amount: targetQty, desc: `Hoard ${targetQty} ${targetItem}s in Inventory` });
+        }
+      }
+      G.levelReqs = reqs;
+    }
+
+    function checkLevelProgress() {
+      if (!G.levelReqs || G.levelReqs.length === 0) generateLevelGoals();
+
+      let allMet = true;
+      G.levelReqs.forEach(req => {
+        let val = 0;
+        if (req.type === 'revenue') val = G.totalRevenue;
+        if (req.type === 'cash') val = G.cash;
+        if (req.type === 'item') val = G.inv[req.target] || 0;
+        if (val < req.amount) allMet = false;
+      });
+
+      if (allMet && !document.getElementById('modalBg')) {
+        showLevelCompleteModal();
+      }
+    }
+
+    function showLevelCompleteModal() {
+      const pGain = 0.5; // +50% multiplier per level
+      const newMult = (G.prestigeMult + pGain).toFixed(1);
+      openModal(`🎉 Level ${G.level} Complete!`, `
+        <div style="padding:15px; font-size:0.9em; line-height:1.6; color:var(--text); text-align:center;">
+          <div style="font-size:3em; margin-bottom:10px;">🌟</div>
+          <p style="margin-bottom:10px;">You are an egg-ceptional tycoon!</p>
+          <p style="color:var(--text2); margin-bottom:20px; font-size:0.9em;">
+            Moving to the next level will <strong style="color:var(--red);">reset your cash, inventory, and plot levels</strong> 
+            to start fresh.<br><br>
+            However, you will <strong style="color:var(--green);">KEEP</strong> all Unlocked Plots, Farm Upgrades, Trucks, and Staff!
+          </p>
+          <div class="card" style="margin-bottom:20px; text-align:center; padding:10px;">
+            <div style="font-size:0.8em; color:var(--text3); font-weight:bold; letter-spacing:1px; text-transform:uppercase;">Permanent Prestige Multiplier</div>
+            <div style="font-size:1.8em; font-family:'Syne'; color:var(--gold); font-weight:800;">
+              ${G.prestigeMult.toFixed(1)}x ➜ ${newMult}x
+            </div>
+            <div style="font-size:0.8em; color:var(--text2); margin-top:5px;">Applies to all sale prices permanently!</div>
+          </div>
+          <button class="btn btn-gold btn-full" onclick="advanceLevel()">Advance to Level ${G.level + 1} &rarr;</button>
+        </div>
+      `);
+    }
+
+    function advanceLevel() {
+      G.level++;
+      G.prestigeMult += 0.5;
+
+      // Wipe the board
+      G.cash = 300;
+      G.totalRevenue = 0;
+      G.totalExpenses = 0;
+
+      // Clear inventory
+      Object.keys(G.inv).forEach(k => G.inv[k] = 0);
+      G.inv.feedWheat = 100;
+      G.inv.feedCorn = 50;
+      G.inv.water = 100;
+
+      // Reset plots but keep them unlocked
+      G.plots.forEach(plot => {
+        plot.stored = 0;
+        if (plot.unlocked) plot.level = 1;
+      });
+
+      // Clear queues and contracts
+      G.factoryQueue = [];
+      G.contracts = [];
+      generateContracts(3);
+
+      generateLevelGoals();
+
+      closeModal();
+      showToast(`🌟 Welcome to Level ${G.level}! Multiplier is now ${G.prestigeMult.toFixed(1)}x!`);
+      save();
+      updateUI();
+      renderFarm();
+    }
+
+    // ══════════════════════════════════════════════════════
     //  INIT
     // ══════════════════════════════════════════════════════
     // Generate initial contracts if none
     if (G.contracts.length === 0) generateContracts(3);
+    if (!G.levelReqs || G.levelReqs.length === 0) generateLevelGoals();
 
     // Initial render
     renderFarm();
