@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clucky Farm Tycoon 🐔</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0F1A0A;--bg2:#162010;--bg3:#1E2D14;
+  --surface:#243318;--surface2:#2D3F1E;--surface3:#374C25;
+  --border:#3D5429;--border2:#4A6632;
+  --gold:#F5C842;--gold2:#E8A800;--gold3:#FFF0A0;
+  --green:#5DD45A;--green2:#3AB837;--green3:#A8F5A6;
+  --red:#F55A5A;--red2:#C83030;
+  --blue:#5AB0F5;--blue2:#2880D8;
+  --purple:#C87AF5;--orange:#F5904A;
+  --text:#E8F5E0;--text2:#A8C890;--text3:#6A8A52;
+  --gold-bg:rgba(245,200,66,.12);--green-bg:rgba(93,212,90,.10);--red-bg:rgba(245,90,90,.10);
+  --r:14px;--r-sm:9px;--r-lg:20px;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ══ TABS (main zones) ══ */
+#app{display:flex;flex-direction:column;height:100vh;}
+#tabBar{display:flex;background:var(--bg);border-bottom:1.5px solid var(--border);flex-shrink:0;padding:0 4px;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;cursor:pointer;
+  border-bottom:2.5px solid transparent;color:var(--text3);transition:color .15s,border-color .15s;font-size:.6em;font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+.tab .ti{font-size:1.7em;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+#mainArea{flex:1;overflow:hidden;position:relative;}
+.zone{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:10px;}
+.zone.active{display:block;}
+
+/* ══ UNIVERSAL CARD ══ */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 15px;margin:0 10px 10px;}
+.card.gold-border{border-color:var(--gold2);}
+.card.green-border{border-color:var(--green2);}
+.card.red-border{border-color:var(--red2);}
+.card-title{font-family:'Syne',sans-serif;font-size:.92em;font-weight:700;color:var(--text);margin-bottom:2px;}
+.card-sub{font-size:.72em;color:var(--text2);line-height:1.5;}
+.card-row{display:flex;align-items:center;gap:10px;}
+.card-icon{font-size:1.8em;flex-shrink:0;}
+
+/* ══ HEADER BAR per zone ══ */
+.zone-header{position:sticky;top:0;z-index:10;background:var(--bg);padding:10px 14px 8px;
+  border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.zone-title{font-family:'Syne',sans-serif;font-size:1.15em;font-weight:800;color:var(--gold);}
+.zone-sub{font-size:.72em;color:var(--text3);}
+
+/* ══ STAT PILLS ══ */
+.stats-row{display:flex;gap:6px;padding:10px 10px 6px;overflow-x:auto;scrollbar-width:none;}
+.stats-row::-webkit-scrollbar{display:none;}
+.stat-pill{background:var(--surface);border:1.5px solid var(--border);border-radius:30px;
+  padding:6px 13px;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.stat-pill .lbl{font-size:.62em;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.stat-pill .val{font-family:'Syne',sans-serif;font-size:.9em;font-weight:700;}
+.stat-pill.gold .val{color:var(--gold);}
+.stat-pill.green .val{color:var(--green);}
+.stat-pill.red .val{color:var(--red);}
+.stat-pill.blue .val{color:var(--blue);}
+
+/* ══ SECTION LABEL ══ */
+.sec-label{font-size:.62em;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.8px;padding:12px 14px 5px;}
+
+/* ══ BUTTONS ══ */
+.btn{border:none;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;transition:transform .1s,filter .1s;}
+.btn:active{transform:scale(.91);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#3A2800;font-size:.82em;padding:9px 16px;}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green2));color:#0F1A0A;font-size:.82em;padding:9px 16px;}
+.btn-blue{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:.82em;padding:9px 16px;}
+.btn-red{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-size:.82em;padding:9px 16px;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2);font-size:.8em;padding:8px 14px;border-radius:var(--r-sm);}
+.btn-full{width:100%;padding:11px;font-size:.88em;}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;}
+.btn-sm{font-size:.74em;padding:6px 12px;}
+
+/* ══ PROGRESS BAR ══ */
+.progress{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s;}
+.progress-fill.gold{background:linear-gradient(90deg,var(--gold2),var(--gold));}
+.progress-fill.green{background:linear-gradient(90deg,var(--green2),var(--green));}
+.progress-fill.blue{background:linear-gradient(90deg,var(--blue2),var(--blue));}
+.progress-fill.red{background:linear-gradient(90deg,var(--red2),var(--red));}
+
+/* ══ TOGGLE ══ */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:2px 0;}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:11px;cursor:pointer;transition:.2s;}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--text3);border-radius:50%;transition:.2s;}
+.toggle input:checked + .toggle-slider{background:var(--green2);}
+.toggle input:checked + .toggle-slider:before{transform:translateX(18px);background:white;}
+
+/* ══ BADGE ══ */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.65em;font-weight:700;}
+.badge-gold{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold2);}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green2);}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red2);}
+.badge-blue{background:rgba(90,176,245,.12);color:var(--blue);border:1px solid var(--blue2);}
+
+/* ══ FLOATERS ══ */
+.floater{position:fixed;z-index:9999;font-weight:700;font-family:'Syne',sans-serif;
+  pointer-events:none;animation:floatUp 1.1s ease-out forwards;font-size:1em;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1);}60%{opacity:1;transform:translateY(-50px) scale(1.1);}100%{opacity:0;transform:translateY(-80px) scale(.8);}}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:rgba(15,26,10,.95);color:var(--text);padding:10px 20px;border-radius:30px;
+  font-size:.82em;font-weight:600;z-index:8000;opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;border:1.5px solid var(--border2);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ MODAL ══ */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:5000;display:flex;align-items:flex-end;}
+.modal-box{width:100%;max-height:88vh;background:var(--bg2);border-radius:22px 22px 0 0;
+  border-top:1.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;
+  animation:slideUp .25s cubic-bezier(.34,1.45,.64,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-head{display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1.5px solid var(--border);flex-shrink:0;}
+.modal-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;position:absolute;top:10px;left:50%;transform:translateX(-50%);}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.1em;font-weight:700;color:var(--gold);flex:1;text-align:center;margin-top:4px;}
+.modal-close{background:var(--surface);border:none;border-radius:50%;width:32px;height:32px;color:var(--text2);font-size:1em;cursor:pointer;}
+.modal-body{overflow-y:auto;flex:1;padding-bottom:20px;}
+
+/* ══ FARM ZONE ══ */
+.farm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 10px;}
+.plot-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);
+  padding:12px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+.plot-card:active{transform:scale(.96);}
+.plot-card.active-plot{border-color:var(--green2);background:var(--surface2);}
+.plot-card.locked-plot{opacity:.45;cursor:not-allowed;}
+.plot-label{font-size:.65em;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.plot-name{font-family:'Syne',sans-serif;font-size:.88em;font-weight:700;color:var(--text);}
+.plot-output{font-size:.72em;color:var(--green);margin-top:2px;}
+.plot-bar-wrap{margin-top:8px;}
+.plot-shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent);animation:shimmer 2s infinite;}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* ══ MARKET ZONE ══ */
+.price-ticker{background:var(--surface);border:1.5px solid var(--border);margin:0 10px 10px;border-radius:var(--r);padding:10px 14px;overflow:hidden;}
+.ticker-row{display:flex;gap:16px;animation:tickerScroll 18s linear infinite;}
+.ticker-item{white-space:nowrap;font-size:.75em;display:flex;align-items:center;gap:5px;}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.price-up{color:var(--green);}
+.price-dn{color:var(--red);}
+.contract-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);
+  padding:13px 14px;margin:0 10px 8px;display:flex;gap:12px;align-items:flex-start;}
+.contract-card.urgent{border-color:var(--gold2);background:rgba(245,200,66,.06);}
+.contract-card.lucrative{border-color:var(--green2);}
+.con-icon{font-size:2em;flex-shrink:0;}
+.con-info{flex:1;}
+.con-name{font-size:.88em;font-weight:700;color:var(--text);}
+.con-detail{font-size:.72em;color:var(--text2);margin-top:2px;line-height:1.5;}
+.con-reward{font-size:.82em;font-weight:700;color:var(--gold);margin-top:3px;}
+.con-action{flex-shrink:0;display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
+
+/* ══ FACTORY ZONE ══ */
+.recipe-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);
+  padding:13px 14px;margin:0 10px 8px;}
+.recipe-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.recipe-icon{font-size:2em;}
+.recipe-meta{flex:1;}
+.recipe-name{font-size:.9em;font-weight:700;color:var(--text);}
+.recipe-profit{font-size:.75em;color:var(--green);margin-top:1px;}
+.recipe-ingredients{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.ingr-chip{display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:3px 9px;font-size:.7em;font-weight:600;}
+.ingr-chip.ok{border-color:var(--green2);color:var(--green3);}
+.ingr-chip.short{border-color:var(--red2);color:var(--red);}
+.factory-queue{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:12px 14px;margin:0 10px 8px;}
+.queue-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:.8em;}
+.queue-item:last-child{border-bottom:none;}
+.queue-timer{color:var(--gold);font-weight:700;font-size:.85em;}
+
+/* ══ STAFF ZONE ══ */
+.staff-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);
+  padding:13px 14px;margin:0 10px 8px;}
+.staff-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.staff-avatar{font-size:2.2em;flex-shrink:0;}
+.staff-info{flex:1;}
+.staff-name{font-size:.88em;font-weight:700;color:var(--text);}
+.staff-role{font-size:.7em;color:var(--text3);margin-top:1px;}
+.staff-skill{font-size:.72em;color:var(--text2);margin-top:3px;}
+.staff-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.salary-tag{font-size:.72em;font-weight:700;color:var(--red);background:var(--red-bg);
+  border:1px solid var(--red2);border-radius:20px;padding:3px 9px;}
+.morale-bar{height:5px;background:var(--bg2);border-radius:3px;margin-top:4px;overflow:hidden;width:80px;}
+.morale-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#F55A5A,#F5C842,#5DD45A);}
+
+/* ══ FINANCE ZONE ══ */
+.finance-summary{background:var(--surface);border:1.5px solid var(--border);margin:0 10px 10px;border-radius:var(--r);padding:14px 16px;}
+.fin-big{font-family:'Syne',sans-serif;font-size:2em;font-weight:800;}
+.fin-big.profit{color:var(--green);}
+.fin-big.loss{color:var(--red);}
+.ledger-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:.8em;}
+.ledger-row:last-child{border-bottom:none;}
+.ledger-label{color:var(--text2);}
+.ledger-val{font-weight:700;}
+.ledger-val.in{color:var(--green);}
+.ledger-val.out{color:var(--red);}
+
+/* ══ TRUCK TRACKER ══ */
+.truck-track{background:var(--surface);border:1.5px solid var(--border);margin:0 10px 8px;border-radius:var(--r);padding:12px 14px;}
+.truck-row{display:flex;align-items:center;gap:10px;padding:5px 0;}
+.truck-icon{font-size:1.5em;}
+.truck-info{flex:1;}
+.truck-name{font-size:.82em;font-weight:700;color:var(--text);}
+.truck-status{font-size:.7em;color:var(--text2);}
+.truck-road{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;min-width:60px;}
+.truck-road-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .5s;}
+
+/* ══ WEATHER ══ */
+.weather-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);
+  margin:0 10px 8px;border-radius:var(--r-sm);padding:8px 12px;font-size:.78em;}
+.weather-icon{font-size:1.6em;}
+.weather-text{flex:1;color:var(--text2);}
+.weather-effect{font-weight:700;color:var(--gold);}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TAB BAR -->
+<div id="tabBar">
+  <div class="tab active" onclick="switchTab('farm')" id="tab-farm"><div class="ti">🌾</div>Farm</div>
+  <div class="tab" onclick="switchTab('factory')" id="tab-factory"><div class="ti">🏭</div>Factory</div>
+  <div class="tab" onclick="switchTab('market')" id="tab-market"><div class="ti">📊</div>Market</div>
+  <div class="tab" onclick="switchTab('staff')" id="tab-staff"><div class="ti">👷</div>Staff</div>
+  <div class="tab" onclick="switchTab('trucks')" id="tab-trucks"><div class="ti">🚚</div>Fleet</div>
+  <div class="tab" onclick="switchTab('finance')" id="tab-finance"><div class="ti">💹</div>Finance</div>
+</div>
+
+<div id="mainArea">
+  <!-- FARM ZONE -->
+  <div class="zone active" id="zone-farm">
+    <div class="zone-header">
+      <div><div class="zone-title">🌾 Farm Operations</div><div class="zone-sub" id="farmDay">Day 1 · Spring</div></div>
+      <div style="text-align:right;"><div style="font-family:'Syne',sans-serif;font-size:1.1em;font-weight:700;color:var(--gold)" id="cashDisplay">$0</div><div style="font-size:.65em;color:var(--text3)" id="rateDisplay">$0/min</div></div>
+    </div>
+    <div class="stats-row" id="farmStats"></div>
+    <div id="weatherBar"></div>
+    <div class="sec-label">PRODUCTION PLOTS</div>
+    <div class="farm-grid" id="plotGrid"></div>
+    <div class="sec-label">SUPPLY CHAIN</div>
+    <div id="supplyChain"></div>
+    <div class="sec-label">FARM UPGRADES</div>
+    <div id="farmUpgrades"></div>
+  </div>
+
+  <!-- FACTORY ZONE -->
+  <div class="zone" id="zone-factory">
+    <div class="zone-header">
+      <div><div class="zone-title">🏭 Processing Factory</div><div class="zone-sub">Turn raw eggs into premium goods</div></div>
+      <div><button class="btn btn-ghost btn-sm" onclick="openFactoryQueue()">Queue <span id="queueCount">0</span></button></div>
+    </div>
+    <div class="sec-label">INVENTORY</div>
+    <div id="inventoryDisplay"></div>
+    <div class="sec-label">RECIPES</div>
+    <div id="recipeList"></div>
+    <div class="sec-label">PROCESSING QUEUE</div>
+    <div id="factoryQueueDisplay"></div>
+  </div>
+
+  <!-- MARKET ZONE -->
+  <div class="zone" id="zone-market">
+    <div class="zone-header">
+      <div><div class="zone-title">📊 Egg Exchange</div><div class="zone-sub">Live prices · Contracts · Bulk deals</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="refreshContracts()">↻ Refresh</button>
+    </div>
+    <div class="price-ticker" id="priceTicker"></div>
+    <div class="sec-label">ACTIVE CONTRACTS <span id="contractTimer" style="color:var(--gold);font-size:.85em;margin-left:4px;"></span></div>
+    <div id="contractList"></div>
+    <div class="sec-label">SPOT MARKET — SELL NOW</div>
+    <div id="spotMarket"></div>
+  </div>
+
+  <!-- STAFF ZONE -->
+  <div class="zone" id="zone-staff">
+    <div class="zone-header">
+      <div><div class="zone-title">👷 Staff Management</div><div class="zone-sub" id="staffSub">0 employees · $0/day payroll</div></div>
+      <button class="btn btn-gold btn-sm" onclick="openHireModal()">+ Hire</button>
+    </div>
+    <div id="staffMorale"></div>
+    <div class="sec-label">YOUR TEAM</div>
+    <div id="staffList"></div>
+    <div class="sec-label">PERFORMANCE BONUSES</div>
+    <div id="bonusList"></div>
+  </div>
+
+  <!-- TRUCKS ZONE -->
+  <div class="zone" id="zone-trucks">
+    <div class="zone-header">
+      <div><div class="zone-title">🚚 Delivery Fleet</div><div class="zone-sub" id="fleetSub">Expand your reach</div></div>
+      <button class="btn btn-gold btn-sm" onclick="openBuyTruckModal()">+ Buy Truck</button>
+    </div>
+    <div class="sec-label">ACTIVE ROUTES</div>
+    <div id="truckList"></div>
+    <div class="sec-label">DELIVERY ROUTES</div>
+    <div id="routeList"></div>
+  </div>
+
+  <!-- FINANCE ZONE -->
+  <div class="zone" id="zone-finance">
+    <div class="zone-header">
+      <div><div class="zone-title">💹 Financial Dashboard</div><div class="zone-sub" id="finPeriod">Today</div></div>
+    </div>
+    <div id="financeSummary"></div>
+    <div class="sec-label">INCOME LEDGER</div>
+    <div id="ledger"></div>
+    <div class="sec-label">BUSINESS MILESTONES</div>
+    <div id="milestones"></div>
+  </div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CORE STATE
+// ══════════════════════════════════════════════════════
+const DEF = {
+  cash: 150, day: 1, tick: 0, season: 0,
+  totalRevenue: 0, totalExpenses: 0, lifetimeEggs: 0,
+  prestige: 0, prestigeMult: 1,
+
+  // Inventory - raw & processed goods
+  inv: { egg:0, feedWheat:30, feedCorn:20, water:50,
+         freeRange:0, organic:0, powdered:0, mayo:0, omelette:0, cake:0, custard:0, vaccine:0 },
+  invCap: { egg:80, feedWheat:200, feedCorn:200, water:200 },
+
+  // Plots: id, type, level, workers[], lastHarvest, autoHarvest
+  plots: [
+    {id:'p1',type:'henCoop',level:1,workers:[],eggs:0,eggCap:20,cooldown:0,autoHarvest:false,unlocked:true},
+    {id:'p2',type:'feedFarm',level:1,workers:[],output:0,rate:0.5,cooldown:0,autoHarvest:false,unlocked:true},
+    {id:'p3',type:'waterWell',level:1,workers:[],output:0,rate:1.0,cooldown:0,autoHarvest:false,unlocked:false},
+    {id:'p4',type:'henCoop',level:0,workers:[],eggs:0,eggCap:0,cooldown:0,autoHarvest:false,unlocked:false},
+    {id:'p5',type:'organicFarm',level:0,workers:[],eggs:0,eggCap:0,cooldown:0,autoHarvest:false,unlocked:false},
+    {id:'p6',type:'hatchery',level:0,workers:[],eggs:0,eggCap:0,cooldown:0,autoHarvest:false,unlocked:false},
+  ],
+
+  // Factory queue
+  factoryQueue: [],
+  factorySlots: 1,
+  factoryLevel: 1,
+
+  // Staff
+  staff: [],
+  maxStaff: 3,
+
+  // Trucks
+  trucks: [],
+  maxTrucks: 1,
+
+  // Contracts (expire, qty, price, deadline)
+  contracts: [],
+  contractsRefreshed: 0,
+
+  // Finance ledger (last 10 entries)
+  ledger: [],
+  dailyRevenue: 0,
+  dailyExpenses: 0,
+
+  // Upgrades purchased
+  upgrades: {},
+
+  // Milestones
+  milestones: {},
+
+  // Weather
+  weather: {type:'sunny', daysLeft:2},
+};
+
+let G = JSON.parse(JSON.stringify(DEF));
+try { const s = localStorage.getItem('cft2'); if(s) G = {...JSON.parse(JSON.stringify(DEF)), ...JSON.parse(s)}; } catch(e){}
+// Ensure arrays
+if(!G.staff) G.staff = [];
+if(!G.trucks) G.trucks = [];
+if(!G.contracts) G.contracts = [];
+if(!G.factoryQueue) G.factoryQueue = [];
+if(!G.ledger) G.ledger = [];
+if(!G.upgrades) G.upgrades = {};
+if(!G.milestones) G.milestones = {};
+if(!G.inv) G.inv = {...DEF.inv};
+
+function save() { try { localStorage.setItem('cft2', JSON.stringify(G)); } catch(e){} }
+function hardReset() { if(confirm('Delete all progress?')) { localStorage.removeItem('cft2'); location.reload(); } }
+
+// ══════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════
+const SEASONS = ['🌸 Spring','☀️ Summer','🍂 Autumn','❄️ Winter'];
+const SEASON_EFFECTS = [
+  {prod:1.2, price:1.0, label:'+20% production'},
+  {prod:1.0, price:1.3, label:'+30% prices'},
+  {prod:0.8, price:1.1, label:'-20% production, +10% prices'},
+  {prod:1.5, price:0.9, label:'+50% production, -10% prices'},
+];
+const WEATHER_TYPES = [
+  {type:'sunny',icon:'☀️',label:'Clear skies',prod:1.1,price:1.0,days:[1,3]},
+  {type:'rain',icon:'🌧️',label:'Heavy rain',prod:1.3,price:1.0,days:[1,2]},
+  {type:'storm',icon:'⛈️',label:'Storm warning',prod:0.5,price:1.2,days:[1,2]},
+  {type:'fog',icon:'🌫️',label:'Morning fog',prod:0.9,price:1.0,days:[1,2]},
+  {type:'heatwave',icon:'🔥',label:'Heatwave',prod:0.7,price:1.4,days:[1,3]},
+  {type:'perfect',icon:'🌤️',label:'Perfect weather',prod:1.5,price:1.1,days:[1,2]},
+];
+
+const PLOT_DEFS = {
+  henCoop:    {icon:'🐔',name:'Hen Coop',    output:'egg',      baseRate:3.0,  feedNeeds:{feedWheat:1,water:1}, unlockCost:0,   maxLevel:8},
+  feedFarm:   {icon:'🌾',name:'Feed Farm',   output:'feedWheat',baseRate:2.0,  feedNeeds:{water:1},             unlockCost:80,  maxLevel:6},
+  waterWell:  {icon:'💧',name:'Water Well',  output:'water',    baseRate:3.0,  feedNeeds:{},                    unlockCost:120, maxLevel:6},
+  organicFarm:{icon:'🌿',name:'Organic Coop',output:'organic',  baseRate:0.8,  feedNeeds:{feedCorn:2,water:1},  unlockCost:400, maxLevel:5},
+  hatchery:   {icon:'🐣',name:'Hatchery',    output:'freeRange',baseRate:0.5,  feedNeeds:{feedWheat:1,feedCorn:1,water:2}, unlockCost:600, maxLevel:4},
+};
+
+const RECIPES = [
+  {id:'powdered',icon:'🥛',name:'Powdered Eggs',   time:20,  inputs:{egg:8},                    output:'powdered', qty:3,  sellPrice:18, unlockLevel:1},
+  {id:'mayo',    icon:'🫙',name:'Mayonnaise Jar',   time:35,  inputs:{egg:5, water:2},           output:'mayo',     qty:2,  sellPrice:28, unlockLevel:1},
+  {id:'omelette',icon:'🍳',name:'Gourmet Omelette', time:45,  inputs:{egg:6, feedWheat:2},       output:'omelette', qty:3,  sellPrice:35, unlockLevel:2},
+  {id:'freeRange',icon:'🥚',name:'Free Range Pack', time:15,  inputs:{freeRange:4},              output:'freeRange',qty:4,  sellPrice:22, unlockLevel:2},
+  {id:'organic', icon:'🌿',name:'Organic Box',      time:25,  inputs:{organic:4, water:1},       output:'organic',  qty:4,  sellPrice:32, unlockLevel:3},
+  {id:'cake',    icon:'🎂',name:'Egg Cake',         time:80,  inputs:{egg:10, feedWheat:5, water:3}, output:'cake', qty:2,  sellPrice:75, unlockLevel:3},
+  {id:'custard', icon:'🍮',name:'Custard Batch',    time:60,  inputs:{egg:8, water:4},           output:'custard',  qty:3,  sellPrice:55, unlockLevel:4},
+  {id:'vaccine', icon:'💉',name:'Egg Protein Serum',time:120, inputs:{organic:3,freeRange:2,egg:5}, output:'vaccine',qty:1, sellPrice:200,unlockLevel:5},
+];
+
+const STAFF_ROLES = [
+  {id:'farmer',  icon:'👨‍🌾',name:'Farmer',    salary:12, bonus:'Harvests plots automatically',  skill:'autoHarvest',  value:1},
+  {id:'driver',  icon:'🚛',name:'Truck Driver',salary:18, bonus:'Runs one truck route per day',   skill:'truckBonus',   value:1},
+  {id:'chef',    icon:'👨‍🍳',name:'Factory Chef',salary:22,bonus:'+25% factory speed',            skill:'factorySpeed', value:0.25},
+  {id:'trader',  icon:'📈',name:'Market Trader',salary:20,bonus:'+15% all sell prices',           skill:'priceBonus',   value:0.15},
+  {id:'vet',     icon:'🐾',name:'Farm Vet',    salary:15, bonus:'+30% coop production',           skill:'coopBonus',    value:0.30},
+  {id:'manager', icon:'🤵',name:'Operations Mgr',salary:35,bonus:'All staff bonuses +20%',        skill:'megaBonus',    value:0.20},
+];
+
+const TRUCK_TYPES = [
+  {id:'van',   icon:'🚐',name:'Delivery Van',  cap:30,  speed:1.0, range:1, cost:300,  routes:['town']},
+  {id:'truck', icon:'🚚',name:'Medium Truck',  cap:80,  speed:0.9, range:2, cost:700,  routes:['town','city']},
+  {id:'semi',  icon:'🚛',name:'Semi Truck',    cap:200, speed:0.8, range:3, cost:1800, routes:['town','city','export']},
+  {id:'ref',   icon:'❄️',name:'Refrigerator Truck',cap:100,speed:0.85,range:2,cost:1200,routes:['premium']},
+];
+
+const ROUTES = [
+  {id:'town',    icon:'🏘️',name:'Local Town',   dist:1, basePrice:1.0, vol:'low',    bonus:'$2.5/egg'},
+  {id:'city',    icon:'🏙️',name:'City Market',  dist:2, basePrice:1.4, vol:'medium', bonus:'$3.8/egg'},
+  {id:'export',  icon:'✈️',name:'Export Deal',  dist:4, basePrice:2.0, vol:'high',   bonus:'$6/egg'},
+  {id:'premium', icon:'👑',name:'Premium Hotels',dist:2,basePrice:2.8, vol:'low',    bonus:'$8/egg'},
+];
+
+const CONTRACT_POOL = [
+  {buyer:'🍽️ Downtown Restaurant', want:'egg',      qty:30,  pricePerUnit:3.5,  urgent:false, lucrative:false},
+  {buyer:'🏨 Grand Hotel Chain',    want:'omelette', qty:8,   pricePerUnit:45,   urgent:false, lucrative:true},
+  {buyer:'🛒 FreshMart Superchain', want:'egg',      qty:100, pricePerUnit:2.8,  urgent:false, lucrative:true},
+  {buyer:'👑 Royal Catering',       want:'organic',  qty:12,  pricePerUnit:55,   urgent:true,  lucrative:true},
+  {buyer:'💊 PharmaCorp',           want:'vaccine',  qty:3,   pricePerUnit:280,  urgent:false, lucrative:true},
+  {buyer:'☕ Café Élite',           want:'mayo',     qty:15,  pricePerUnit:32,   urgent:true,  lucrative:false},
+  {buyer:'🎂 BakeryMasters',        want:'cake',     qty:5,   pricePerUnit:90,   urgent:true,  lucrative:true},
+  {buyer:'🥗 Organic Co-op',        want:'freeRange',qty:20,  pricePerUnit:28,   urgent:false, lucrative:false},
+  {buyer:'🏥 City Hospital',        want:'custard',  qty:10,  pricePerUnit:65,   urgent:true,  lucrative:false},
+  {buyer:'🌍 Export Broker',        want:'powdered', qty:25,  pricePerUnit:22,   urgent:false, lucrative:true},
+];
+
+const FARM_UPGRADES = [
+  {id:'eggCap',    icon:'📦',name:'Egg Storage +50',    desc:'Expand total egg capacity.',         cost:200, effect:'invCap.egg += 50',      repeatable:true, count:0, max:10},
+  {id:'feedRate',  icon:'🌾',name:'Feed Efficiency',    desc:'25% less feed consumed per cycle.',  cost:150, effect:'feedEff',               repeatable:true, count:0, max:5},
+  {id:'coopSpeed', icon:'⚡',name:'Coop Speed Boost',   desc:'All coops produce 20% faster.',      cost:180, effect:'coopSpeed',             repeatable:true, count:0, max:6},
+  {id:'waterEff',  icon:'💧',name:'Water Recycler',     desc:'50% less water used.',               cost:220, effect:'waterEff',              repeatable:false,count:0, max:1},
+  {id:'factSlots', icon:'🏭',name:'Factory Slot +1',    desc:'Process one more recipe at once.',   cost:350, effect:'factorySlots++',        repeatable:true, count:0, max:3},
+  {id:'staffSlot', icon:'👷',name:'Hire +1 Staff Slot', desc:'Expand your team capacity.',         cost:250, effect:'maxStaff++',            repeatable:true, count:0, max:5},
+  {id:'truckSlot', icon:'🚚',name:'Fleet Slot +1',      desc:'Buy an additional truck.',           cost:500, effect:'maxTrucks++',           repeatable:true, count:0, max:4},
+  {id:'autoCollect',icon:'🤖',name:'Auto-Collect System',desc:'All plots auto-harvest every 30s.', cost:600, effect:'autoCollect',           repeatable:false,count:0, max:1},
+];
+
+// ══════════════════════════════════════════════════════
+//  DERIVED STATS
+// ══════════════════════════════════════════════════════
+function getStaffBonus(skill) {
+  let total = 0;
+  G.staff.forEach(s => { if(s.skill === skill) total += s.value; });
+  const hasMgr = G.staff.some(s => s.skill === 'megaBonus');
+  if(hasMgr && total > 0) total *= 1.2;
+  return total;
+}
+function getPriceMultiplier() {
+  const season = SEASON_EFFECTS[G.season % 4];
+  const weather = getCurrentWeather();
+  return season.price * weather.price * (1 + getStaffBonus('priceBonus')) * G.prestigeMult;
+}
+function getProductionMultiplier() {
+  const season = SEASON_EFFECTS[G.season % 4];
+  const weather = getCurrentWeather();
+  return season.prod * weather.prod;
+}
+function getCurrentWeather() {
+  const wt = WEATHER_TYPES.find(w => w.type === G.weather.type) || WEATHER_TYPES[0];
+  return {prod: wt.prod, price: wt.price, icon: wt.icon, label: wt.label, type: wt.type};
+}
+function getPayroll() { return G.staff.reduce((a,s) => a + s.salary, 0); }
+function getFactorySpeed() { return 1 + getStaffBonus('factorySpeed'); }
+function getCoopBonus() { return 1 + getStaffBonus('coopBonus'); }
+function getFeedEff() { return Math.max(0.3, 1 - (G.upgrades.feedRate || 0) * 0.25); }
+function getCoopSpeed() { return 1 + (G.upgrades.coopSpeed || 0) * 0.2; }
+
+// ══════════════════════════════════════════════════════
+//  GAME TICK (every 1s)
+// ══════════════════════════════════════════════════════
+let tickInterval = null;
+function startTick() {
+  tickInterval = setInterval(gameLoop, 1000);
+}
+function gameLoop() {
+  G.tick++;
+
+  // Day cycle (every 120s = 2 min per day)
+  if(G.tick % 120 === 0) advanceDay();
+
+  // Plot auto-production
+  producePlots();
+
+  // Factory queue processing
+  processFactory();
+
+  // Auto trucks
+  autoTrucks();
+
+  // Contract expiry
+  tickContracts();
+
+  // Weather tick
+  tickWeather();
+
+  // Auto-staff actions
+  autoStaffActions();
+
+  // Update UI
+  updateUI();
+
+  // Save every 30s
+  if(G.tick % 30 === 0) save();
+}
+
+function advanceDay() {
+  G.day++;
+  // Season (8 days per season)
+  G.season = Math.floor((G.day - 1) / 8) % 4;
+  // Daily payroll
+  const payroll = getPayroll();
+  if(payroll > 0) {
+    if(G.cash >= payroll) {
+      G.cash -= payroll;
+      G.totalExpenses += payroll;
+      G.dailyExpenses += payroll;
+      addLedger(`Payroll (${G.staff.length} staff)`, -payroll, 'payroll');
+    } else {
+      showToast('⚠️ Cannot pay staff! They\'re unhappy.');
+      G.staff.forEach(s => { s.morale = Math.max(0, (s.morale||100) - 30); });
+    }
+  }
+  // New contracts
+  if(G.contracts.filter(c=>!c.accepted).length < 3) generateContracts(2);
+  // Reset daily stats
+  G.dailyRevenue = 0;
+  G.dailyExpenses = 0;
+  showToast(`🌅 Day ${G.day} — ${SEASONS[G.season % 4]}`);
+  checkMilestones();
+  // Weather change
+  if(G.weather.daysLeft <= 1) changeWeather();
+  else G.weather.daysLeft--;
+}
+
+function producePlots() {
+  const prodMult = getProductionMultiplier() * getCoopSpeed() * getCoopBonus();
+  G.plots.forEach(plot => {
+    if(!plot.unlocked || plot.level < 1) return;
+    const def = PLOT_DEFS[plot.type];
+    if(!def) return;
+
+    // Check feed availability
+    const feedNeeds = def.feedNeeds || {};
+    const hasFeed = Object.entries(feedNeeds).every(([item, amt]) =>
+      (G.inv[item] || 0) >= amt * getFeedEff() * 0.016 // per tick fraction
+    );
+    if(!hasFeed) return;
+
+    // Consume feed
+    Object.entries(feedNeeds).forEach(([item, amt]) => {
+      G.inv[item] = Math.max(0, (G.inv[item]||0) - amt * getFeedEff() * 0.016);
+    });
+
+    const rate = def.baseRate * plot.level * prodMult * (1/60); // per tick
+    const cap = G.invCap[def.output] || 999;
+    G.inv[def.output] = Math.min(cap, (G.inv[def.output]||0) + rate);
+
+    if(def.output === 'egg') G.lifetimeEggs += rate;
+  });
+}
+
+function processFactory() {
+  if(G.factoryQueue.length === 0) return;
+  const active = G.factoryQueue.slice(0, G.factorySlots);
+  active.forEach(job => {
+    job.progress = (job.progress || 0) + (1 / job.totalTime) * getFactorySpeed();
+    if(job.progress >= 1) {
+      // Done
+      G.inv[job.output] = (G.inv[job.output] || 0) + job.qty;
+      const value = job.qty * job.sellPrice;
+      addLedger(`🏭 Produced ${job.qty}× ${job.name}`, 0, 'factory');
+      G.factoryQueue = G.factoryQueue.filter(q => q !== job);
+    }
+  });
+}
+
+function autoTrucks() {
+  G.trucks.forEach(truck => {
+    if(!truck.active || truck.status !== 'dispatched') return;
+    truck.tripProgress = (truck.tripProgress || 0) + (1 / truck.tripTime);
+    if(truck.tripProgress >= 1) {
+      const route = ROUTES.find(r => r.id === truck.currentRoute);
+      const pricePerEgg = (route?.basePrice || 2) * getPriceMultiplier();
+      const earned = Math.floor(truck.load * pricePerEgg);
+      G.cash += earned;
+      G.totalRevenue += earned;
+      G.dailyRevenue += earned;
+      addLedger(`🚚 ${truck.name} delivered ${truck.load} units → ${route?.name}`, earned, 'truck');
+      truck.status = 'idle';
+      truck.tripProgress = 0;
+      truck.load = 0;
+      showToast(`🚚 ${truck.name} returned! +$${earned}`);
+    }
+  });
+}
+
+function autoStaffActions() {
+  // Farmers auto-harvest (if auto-collect upgrade or farmer staff)
+  const hasFarmer = G.staff.some(s => s.skill === 'autoHarvest');
+  const hasAutoCollect = G.upgrades.autoCollect;
+  if((hasFarmer || hasAutoCollect) && G.tick % 30 === 0) {
+    G.plots.forEach(plot => {
+      if(plot.unlocked && plot.level >= 1 && plot.type === 'henCoop') {
+        // already handled in producePlots, but triggers a harvest notification
+      }
+    });
+  }
+}
+
+function tickContracts() {
+  G.contracts.forEach(c => { if(!c.accepted) c.ticksLeft = (c.ticksLeft || 600) - 1; });
+  G.contracts = G.contracts.filter(c => c.accepted || c.ticksLeft > 0);
+}
+
+function tickWeather() {
+  // Weather changes handled in advanceDay
+}
+
+function changeWeather() {
+  const w = WEATHER_TYPES[Math.floor(Math.random() * WEATHER_TYPES.length)];
+  const daysRange = w.days;
+  G.weather = { type: w.type, daysLeft: daysRange[0] + Math.floor(Math.random() * (daysRange[1] - daysRange[0] + 1)) };
+}
+
+// ══════════════════════════════════════════════════════
+//  PLAYER ACTIONS
+// ══════════════════════════════════════════════════════
+function harvestPlot(plotId) {
+  const plot = G.plots.find(p => p.id === plotId);
+  if(!plot || !plot.unlocked || plot.level < 1) return;
+  const def = PLOT_DEFS[plot.type];
+  const current = Math.floor(G.inv[def.output] || 0);
+  if(current < 1) { showToast(`Nothing to harvest yet!`); return; }
+  spawnFloat(`+${current} ${def.icon}`, event);
+  showToast(`Harvested ${current} ${def.output} from ${def.name}`);
+  // Already tracked in inv, just show feedback
+}
+
+function unlockPlot(plotId) {
+  const plot = G.plots.find(p => p.id === plotId);
+  if(!plot || plot.unlocked) return;
+  const def = PLOT_DEFS[plot.type];
+  if(!def) return;
+  if(G.cash < def.unlockCost) { showToast(`Need $${def.unlockCost} to unlock!`); return; }
+  G.cash -= def.unlockCost;
+  plot.unlocked = true;
+  plot.level = 1;
+  G.totalExpenses += def.unlockCost;
+  addLedger(`Unlocked ${def.name}`, -def.unlockCost, 'unlock');
+  showToast(`🎉 ${def.name} unlocked!`);
+  save(); renderFarm();
+}
+
+function upgradePlot(plotId) {
+  const plot = G.plots.find(p => p.id === plotId);
+  if(!plot) return;
+  const def = PLOT_DEFS[plot.type];
+  const cost = Math.floor(80 * Math.pow(1.8, plot.level));
+  if(G.cash < cost) { showToast(`Need $${cost} to upgrade!`); return; }
+  if(plot.level >= def.maxLevel) { showToast('Already at max level!'); return; }
+  G.cash -= cost;
+  plot.level++;
+  G.totalExpenses += cost;
+  addLedger(`Upgraded ${def.name} to Lv${plot.level}`, -cost, 'upgrade');
+  spawnFloat(`⬆️ Lv${plot.level}`, null, window.innerWidth/2, window.innerHeight/2);
+  showToast(`${def.name} upgraded to Level ${plot.level}!`);
+  save(); renderFarm();
+}
+
+function queueRecipe(recipeId) {
+  const recipe = RECIPES.find(r => r.id === recipeId);
+  if(!recipe) return;
+  if(G.factoryQueue.length >= G.factorySlots * 2) { showToast('Factory queue full!'); return; }
+  // Check inputs
+  for(const [item, amt] of Object.entries(recipe.inputs)) {
+    if((G.inv[item] || 0) < amt) { showToast(`Need ${amt} ${item}!`); return; }
+  }
+  // Consume inputs
+  for(const [item, amt] of Object.entries(recipe.inputs)) G.inv[item] -= amt;
+  G.factoryQueue.push({
+    ...recipe, progress: 0,
+    totalTime: recipe.time,
+    startedAt: Date.now(),
+    id: 'q_' + Date.now()
+  });
+  showToast(`🏭 Started: ${recipe.name}`);
+  save(); renderFactory();
+}
+
+function sellSpot(goodId, qty) {
+  const avail = Math.floor(G.inv[goodId] || 0);
+  if(avail < qty) { showToast('Not enough stock!'); return; }
+  const priceMap = {
+    egg:2.2, freeRange:5.5, organic:7.8, powdered:6.0, mayo:14, omelette:11.5,
+    cake:37, custard:18, vaccine:200, feedWheat:0.8, water:0.3
+  };
+  const basePrice = priceMap[goodId] || 1;
+  const earn = Math.floor(qty * basePrice * getPriceMultiplier());
+  G.inv[goodId] -= qty;
+  G.cash += earn;
+  G.totalRevenue += earn;
+  G.dailyRevenue += earn;
+  addLedger(`Sold ${qty}× ${goodId}`, earn, 'sell');
+  spawnFloat(`+$${earn}`, null, window.innerWidth - 80, window.innerHeight * 0.4);
+  showToast(`Sold ${qty} ${goodId} for $${earn}`);
+  save(); updateUI(); renderMarket();
+}
+
+function acceptContract(contractId) {
+  const c = G.contracts.find(x => x.id === contractId);
+  if(!c || c.accepted) return;
+  const avail = Math.floor(G.inv[c.want] || 0);
+  if(avail < c.qty) { showToast(`Need ${c.qty} ${c.want}, you have ${avail}`); return; }
+  G.inv[c.want] -= c.qty;
+  const earn = Math.floor(c.qty * c.pricePerUnit * getPriceMultiplier());
+  G.cash += earn;
+  G.totalRevenue += earn;
+  G.dailyRevenue += earn;
+  c.accepted = true;
+  addLedger(`Contract: ${c.buyer.split(' ').slice(1).join(' ')}`, earn, 'contract');
+  spawnFloat(`+$${earn} 📋`, null, window.innerWidth/2, window.innerHeight * 0.4);
+  showToast(`✅ Contract fulfilled! +$${earn}`);
+  checkMilestones();
+  save(); renderMarket();
+}
+
+function dispatchTruck(truckId, routeId) {
+  const truck = G.trucks.find(t => t.id === truckId);
+  const route = ROUTES.find(r => r.id === routeId);
+  if(!truck || !route) return;
+  if(truck.status !== 'idle') { showToast('Truck already on the road!'); return; }
+  // Check if route allowed for truck type
+  const truckDef = TRUCK_TYPES.find(t => t.id === truck.type);
+  if(!truckDef.routes.includes(routeId)) { showToast(`This truck can't access ${route.name}`); return; }
+  // Load eggs
+  const loadAmt = Math.min(Math.floor(G.inv.egg || 0), truck.cap);
+  if(loadAmt < 5) { showToast('Need at least 5 eggs to dispatch!'); return; }
+  G.inv.egg -= loadAmt;
+  truck.status = 'dispatched';
+  truck.currentRoute = routeId;
+  truck.load = loadAmt;
+  truck.tripProgress = 0;
+  truck.tripTime = Math.floor(60 * route.dist / (truckDef.speed || 1)); // ticks
+  showToast(`🚚 ${truck.name} dispatched to ${route.name} with ${loadAmt} eggs!`);
+  save(); renderTrucks();
+}
+
+function hireStaff(roleId) {
+  const role = STAFF_ROLES.find(r => r.id === roleId);
+  if(!role) return;
+  if(G.staff.length >= G.maxStaff) { showToast(`Need more staff slots! Buy upgrade.`); return; }
+  if(G.staff.some(s => s.id === roleId)) { showToast('Already hired this role!'); return; }
+  const hireCost = role.salary * 7; // 7 days upfront
+  if(G.cash < hireCost) { showToast(`Hiring costs $${hireCost} (7 days salary)`); return; }
+  G.cash -= hireCost;
+  G.totalExpenses += hireCost;
+  G.staff.push({...role, morale:100, hiredDay: G.day});
+  addLedger(`Hired ${role.name}`, -hireCost, 'hire');
+  showToast(`👷 ${role.name} hired!`);
+  closeModal(); save(); renderStaff();
+}
+
+function fireStaff(roleId) {
+  if(!confirm(`Fire this employee? They won't be happy.`)) return;
+  G.staff = G.staff.filter(s => s.id !== roleId);
+  showToast('Employee let go.');
+  save(); renderStaff();
+}
+
+function buyTruck(typeId) {
+  const tDef = TRUCK_TYPES.find(t => t.id === typeId);
+  if(!tDef) return;
+  if(G.trucks.length >= G.maxTrucks) { showToast('Need more fleet slots!'); return; }
+  if(G.trucks.some(t => t.type === typeId)) { showToast('You already own this truck type. Buy a fleet slot to add another.'); return; }
+  if(G.cash < tDef.cost) { showToast(`Need $${tDef.cost}!`); return; }
+  G.cash -= tDef.cost;
+  G.totalExpenses += tDef.cost;
+  G.trucks.push({
+    id: 't_' + Date.now(), type: typeId, name: tDef.name,
+    cap: tDef.cap, status: 'idle', tripProgress:0, load:0, currentRoute:null, active:true
+  });
+  addLedger(`Bought ${tDef.name}`, -tDef.cost, 'purchase');
+  showToast(`🚚 ${tDef.name} added to fleet!`);
+  closeModal(); save(); renderTrucks();
+}
+
+function buyFarmUpgrade(upgradeId) {
+  const upg = FARM_UPGRADES.find(u => u.id === upgradeId);
+  if(!upg) return;
+  const count = G.upgrades[upgradeId] || 0;
+  if(count >= upg.max) { showToast('Already maxed!'); return; }
+  const cost = Math.floor(upg.cost * Math.pow(1.6, count));
+  if(G.cash < cost) { showToast(`Need $${cost}!`); return; }
+  G.cash -= cost;
+  G.totalExpenses += cost;
+  G.upgrades[upgradeId] = count + 1;
+  addLedger(`Upgrade: ${upg.name}`, -cost, 'upgrade');
+  // Apply effect
+  if(upgradeId === 'eggCap') G.invCap.egg = (G.invCap.egg || 80) + 50;
+  if(upgradeId === 'factSlots') G.factorySlots = Math.min(4, (G.factorySlots||1) + 1);
+  if(upgradeId === 'staffSlot') G.maxStaff = (G.maxStaff||3) + 1;
+  if(upgradeId === 'truckSlot') G.maxTrucks = (G.maxTrucks||1) + 1;
+  if(upgradeId === 'autoCollect') G.upgrades.autoCollect = true;
+  showToast(`✨ ${upg.name} upgraded!`);
+  save(); renderFarm();
+}
+
+// ══════════════════════════════════════════════════════
+//  CONTRACTS
+// ══════════════════════════════════════════════════════
+function generateContracts(count) {
+  const pool = [...CONTRACT_POOL].sort(() => Math.random() - .5);
+  for(let i = 0; i < count && i < pool.length; i++) {
+    const base = pool[i];
+    G.contracts.push({
+      ...base, id: 'c_'+Date.now()+i,
+      accepted: false, ticksLeft: 600,
+      qty: Math.floor(base.qty * (0.7 + Math.random() * 0.6)),
+    });
+  }
+}
+
+function refreshContracts() {
+  const cost = 50;
+  if(G.cash < cost) { showToast(`Refresh costs $${cost}`); return; }
+  G.cash -= cost;
+  G.contracts = G.contracts.filter(c => c.accepted);
+  generateContracts(4);
+  showToast('Contracts refreshed!');
+  save(); renderMarket();
+}
+
+// ══════════════════════════════════════════════════════
+//  FINANCE HELPERS
+// ══════════════════════════════════════════════════════
+function addLedger(desc, amount, type) {
+  G.ledger.unshift({ desc, amount, type, day: G.day, ts: Date.now() });
+  if(G.ledger.length > 30) G.ledger.pop();
+}
+
+function checkMilestones() {
+  const checks = [
+    {id:'first_sale', label:'First Sale', desc:'Sell your first eggs', check: () => G.totalRevenue > 0},
+    {id:'cash_500',   label:'$500 Milestone', desc:'Accumulate $500 cash', check: () => G.cash >= 500},
+    {id:'cash_2k',    label:'$2,000 Cash', desc:'Reach $2,000 in the bank', check: () => G.cash >= 2000},
+    {id:'factory_run',label:'Factory Activated', desc:'Complete your first recipe', check: () => G.inv.powdered > 0 || G.inv.mayo > 0},
+    {id:'staff_3',    label:'Full Team', desc:'Hire 3 staff members', check: () => G.staff.length >= 3},
+    {id:'truck_fleet',label:'Trucker\'s Life', desc:'Own 2 trucks', check: () => G.trucks.length >= 2},
+    {id:'contract_5', label:'Contract King', desc:'Fulfill 5 contracts', check: () => G.contracts.filter(c=>c.accepted).length >= 5},
+    {id:'revenue_10k',label:'$10K Revenue', desc:'Total revenue $10,000+', check: () => G.totalRevenue >= 10000},
+  ];
+  checks.forEach(m => {
+    if(!G.milestones[m.id] && m.check()) {
+      G.milestones[m.id] = true;
+      showToast(`🏆 Milestone: "${m.label}" achieved!`);
+      G.cash += 100;
+      addLedger(`🏆 Milestone Bonus: ${m.label}`, 100, 'milestone');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  UI RENDERING
+// ══════════════════════════════════════════════════════
+function updateUI() {
+  document.getElementById('cashDisplay').textContent = '$' + Math.floor(G.cash).toLocaleString();
+  const rph = G.dailyRevenue / Math.max(1, G.tick % 120) * 60;
+  document.getElementById('rateDisplay').textContent = `$${Math.floor(rph)}/min est.`;
+  document.getElementById('farmDay').textContent = `Day ${G.day} · ${SEASONS[G.season%4]}`;
+
+  // Farm stats pills
+  const se = SEASON_EFFECTS[G.season % 4];
+  const w = getCurrentWeather();
+  document.getElementById('farmStats').innerHTML = `
+    <div class="stat-pill gold"><span class="lbl">Cash</span><span class="val">$${Math.floor(G.cash).toLocaleString()}</span></div>
+    <div class="stat-pill ${G.inv.egg > G.invCap.egg * .8 ? 'red' : 'green'}"><span class="lbl">Eggs</span><span class="val">${Math.floor(G.inv.egg||0)}/${G.invCap.egg}</span></div>
+    <div class="stat-pill blue"><span class="lbl">Feed</span><span class="val">${Math.floor(G.inv.feedWheat||0)}</span></div>
+    <div class="stat-pill blue"><span class="lbl">Water</span><span class="val">${Math.floor(G.inv.water||0)}</span></div>
+    <div class="stat-pill"><span class="lbl">Revenue</span><span class="val" style="color:var(--green)">$${Math.floor(G.totalRevenue).toLocaleString()}</span></div>
+    <div class="stat-pill"><span class="lbl">Payroll</span><span class="val" style="color:var(--red)">$${getPayroll()}/day</span></div>
+  `;
+
+  // Weather bar
+  document.getElementById('weatherBar').innerHTML = `
+    <div class="weather-bar">
+      <div class="weather-icon">${w.icon}</div>
+      <div class="weather-text">${w.label} · ${G.weather.daysLeft} day${G.weather.daysLeft!==1?'s':''} left</div>
+      <div class="weather-effect">Prod ×${w.prod.toFixed(1)} &nbsp; Price ×${w.price.toFixed(1)}</div>
+    </div>
+  `;
+
+  // Staff sub
+  document.getElementById('staffSub').textContent = `${G.staff.length}/${G.maxStaff} employees · $${getPayroll()}/day payroll`;
+
+  // Fleet sub
+  const busy = G.trucks.filter(t => t.status === 'dispatched').length;
+  document.getElementById('fleetSub').textContent = `${G.trucks.length}/${G.maxTrucks} trucks · ${busy} on route`;
+
+  // Factory queue count
+  document.getElementById('queueCount').textContent = G.factoryQueue.length;
+
+  // Contract timer
+  const soonest = G.contracts.filter(c=>!c.accepted).sort((a,b)=>a.ticksLeft-b.ticksLeft)[0];
+  if(soonest) document.getElementById('contractTimer').textContent = `Next expires in ${Math.floor(soonest.ticksLeft/60)}m ${soonest.ticksLeft%60}s`;
+}
+
+function renderFarm() {
+  // Plots
+  const pg = document.getElementById('plotGrid');
+  pg.innerHTML = G.plots.map(plot => {
+    const def = PLOT_DEFS[plot.type];
+    if(!def) return '';
+    const output = G.inv[def.output] || 0;
+    const cap = G.invCap[def.output] || 100;
+    const pct = Math.min(100, output / cap * 100);
+    const upgCost = Math.floor(80 * Math.pow(1.8, plot.level));
+
+    if(!plot.unlocked) {
+      return `<div class="plot-card locked-plot" onclick="unlockPlot('${plot.id}')">
+        <div class="plot-label">LOCKED</div>
+        <div class="plot-name">${def.icon} ${def.name}</div>
+        <div class="plot-output" style="color:var(--gold)">Unlock: $${def.unlockCost}</div>
+        <button class="btn btn-gold btn-sm" style="margin-top:8px;width:100%" ${G.cash<def.unlockCost?'disabled':''}>Unlock $${def.unlockCost}</button>
+      </div>`;
+    }
+
+    const canAfford = G.cash >= upgCost && plot.level < def.maxLevel;
+    return `<div class="plot-card ${plot.level>0?'active-plot':''}">
+      <div class="plot-label">${def.icon} ${def.name.toUpperCase()}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="plot-name">Level ${plot.level}/${def.maxLevel}</div>
+        <span class="badge ${canAfford?'badge-gold':'badge-blue'}">+${(def.baseRate * plot.level * getProductionMultiplier() * getCoopSpeed() * getCoopBonus()).toFixed(1)}/min</span>
+      </div>
+      <div class="plot-output">${def.icon} ${Math.floor(output)} ${def.output}${cap < 999 ? ` / ${cap}` : ''}</div>
+      <div class="plot-bar-wrap"><div class="progress"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${plot.level < def.maxLevel ? `<button class="btn btn-gold btn-sm" style="flex:1" ${G.cash<upgCost?'disabled':''} onclick="upgradePlot('${plot.id}')">⬆️ $${upgCost}</button>` : `<span class="badge badge-green" style="padding:6px 10px;flex:1;text-align:center;">MAX</span>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Supply chain
+  document.getElementById('supplyChain').innerHTML = `
+    <div class="card" style="margin:0 10px 10px;">
+      <div style="font-family:'Syne',sans-serif;font-size:.85em;font-weight:700;color:var(--text2);margin-bottom:10px;">Supply Flow</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:.78em;color:var(--text2);">
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--border);">🌾 Feed ${Math.floor(G.inv.feedWheat||0)}</span>
+        <span style="color:var(--border2);font-size:1.2em;">→</span>
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--border);">💧 Water ${Math.floor(G.inv.water||0)}</span>
+        <span style="color:var(--border2);font-size:1.2em;">→</span>
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--green2);">🐔 Coop</span>
+        <span style="color:var(--border2);font-size:1.2em;">→</span>
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--gold2);">🥚 ${Math.floor(G.inv.egg||0)} eggs</span>
+        <span style="color:var(--border2);font-size:1.2em;">→</span>
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--blue2);">🏭 Factory</span>
+        <span style="color:var(--border2);font-size:1.2em;">→</span>
+        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--purple);">💰 Revenue</span>
+      </div>
+      <div style="margin-top:8px;font-size:.72em;color:var(--text3);">
+        Prod mult: ×${getProductionMultiplier().toFixed(2)} &nbsp;·&nbsp; 
+        Price mult: ×${getPriceMultiplier().toFixed(2)} &nbsp;·&nbsp;
+        Factory speed: ×${getFactorySpeed().toFixed(2)}
+      </div>
+    </div>`;
+
+  // Upgrades
+  document.getElementById('farmUpgrades').innerHTML = FARM_UPGRADES.map(u => {
+    const count = G.upgrades[u.id] || 0;
+    const cost = Math.floor(u.cost * Math.pow(1.6, count));
+    const maxed = count >= u.max;
+    const can = !maxed && G.cash >= cost;
+    return `<div class="card" style="margin:0 10px 8px;">
+      <div class="card-row">
+        <div style="font-size:1.8em;">${u.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.85em;font-weight:700;color:var(--text);">${u.name} ${count>0?`(${count}/${u.max})`:''}</div>
+          <div style="font-size:.7em;color:var(--text2);margin-top:2px;">${u.desc}</div>
+        </div>
+        <button class="btn ${can?'btn-gold':'btn-ghost'} btn-sm" ${maxed||!can?'disabled':''} onclick="buyFarmUpgrade('${u.id}')">
+          ${maxed ? '✓ Max' : `$${cost.toLocaleString()}`}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFactory() {
+  // Inventory
+  const allGoods = Object.entries(G.inv).filter(([k,v]) => v > 0.1 && !['feedWheat','feedCorn','water'].includes(k));
+  document.getElementById('inventoryDisplay').innerHTML = allGoods.length === 0 ?
+    `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No goods yet — start the coops!</div>` :
+    `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 10px 10px;">${
+      allGoods.map(([k,v]) => `<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-size:.78em;font-weight:700;"><span style="opacity:.7;">${k}</span> <span style="color:var(--gold)">${Math.floor(v)}</span></div>`).join('')
+    }</div>`;
+
+  // Recipes
+  const factLevel = G.factoryLevel || 1;
+  document.getElementById('recipeList').innerHTML = RECIPES.filter(r => r.unlockLevel <= factLevel).map(r => {
+    const canMake = Object.entries(r.inputs).every(([k,v]) => (G.inv[k]||0) >= v);
+    return `<div class="recipe-card">
+      <div class="recipe-header">
+        <div class="recipe-icon">${r.icon}</div>
+        <div class="recipe-meta">
+          <div class="recipe-name">${r.name}</div>
+          <div class="recipe-profit">→ ${r.qty}× ${r.output} · ~$${(r.qty * r.sellPrice * getPriceMultiplier()).toFixed(0)} · ${r.time}s</div>
+        </div>
+        <button class="btn ${canMake?'btn-green':'btn-ghost'} btn-sm" ${canMake?'':'disabled'} onclick="queueRecipe('${r.id}')">Queue</button>
+      </div>
+      <div class="recipe-ingredients">
+        ${Object.entries(r.inputs).map(([k,v]) => {
+          const have = Math.floor(G.inv[k]||0);
+          return `<div class="ingr-chip ${have>=v?'ok':'short'}">${k} ×${v} (${have})</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Queue
+  const qd = document.getElementById('factoryQueueDisplay');
+  if(G.factoryQueue.length === 0) {
+    qd.innerHTML = `<div class="card" style="margin:0 10px;"><div style="font-size:.8em;color:var(--text3);text-align:center;padding:8px 0;">Queue empty — add recipes above</div></div>`;
+  } else {
+    qd.innerHTML = `<div class="factory-queue">${
+      G.factoryQueue.map((j,i) => {
+        const active = i < G.factorySlots;
+        const pct = Math.min(100, (j.progress||0) * 100);
+        return `<div class="queue-item">
+          <span>${j.icon}</span>
+          <span style="flex:1;font-size:.82em;">${j.name}</span>
+          ${active ? `<div class="progress" style="width:80px;flex-shrink:0;"><div class="progress-fill gold" style="width:${pct}%"></div></div>` : `<span style="font-size:.7em;color:var(--text3);">Queued</span>`}
+          <span class="queue-timer">${active ? `${Math.floor((1-j.progress)*j.totalTime/getFactorySpeed())}s` : '⏳'}</span>
+        </div>`;
+      }).join('')
+    }</div>`;
+  }
+}
+
+function renderMarket() {
+  // Ticker
+  const goods = [
+    {name:'Eggs',price:2.2},{name:'Free Range',price:5.5},{name:'Organic',price:7.8},
+    {name:'Powdered',price:6.0},{name:'Mayo',price:14},{name:'Omelette',price:11.5},
+    {name:'Cake',price:37},{name:'Custard',price:18},{name:'Vaccine',price:200},
+  ];
+  const mult = getPriceMultiplier();
+  const tickerItems = [...goods, ...goods].map(g => {
+    const p = (g.price * mult).toFixed(2);
+    const up = Math.random() > 0.5;
+    return `<div class="ticker-item"><span>${g.name}</span><span class="${up?'price-up':'price-dn'}">${up?'▲':'▼'} $${p}</span></div>`;
+  }).join('');
+  document.getElementById('priceTicker').innerHTML = `<div class="ticker-row">${tickerItems}</div>`;
+
+  // Contracts
+  const activeContracts = G.contracts.filter(c => !c.accepted);
+  const cl = document.getElementById('contractList');
+  if(activeContracts.length === 0) {
+    cl.innerHTML = `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No active contracts. Click ↻ Refresh to get new ones ($50).</div>`;
+  } else {
+    cl.innerHTML = activeContracts.map(c => {
+      const have = Math.floor(G.inv[c.want] || 0);
+      const canFill = have >= c.qty;
+      const earn = Math.floor(c.qty * c.pricePerUnit * mult);
+      const timeLeft = Math.floor(c.ticksLeft / 60);
+      return `<div class="contract-card ${c.urgent?'urgent':''} ${c.lucrative?'lucrative':''}">
+        <div class="con-icon">${c.buyer.split(' ')[0]}</div>
+        <div class="con-info">
+          <div class="con-name">${c.buyer.split(' ').slice(1).join(' ')}</div>
+          <div class="con-detail">Wants: <b>${c.qty}× ${c.want}</b> &nbsp;·&nbsp; You have: ${have}
+          ${c.urgent ? '&nbsp;<span class="badge badge-gold">URGENT</span>':''} ${c.lucrative ? '&nbsp;<span class="badge badge-green">LUCRATIVE</span>':''}</div>
+          <div class="con-reward">Pay: $${earn} &nbsp;·&nbsp; Expires: ${timeLeft}m</div>
+        </div>
+        <div class="con-action">
+          <button class="btn ${canFill?'btn-green':'btn-ghost'} btn-sm" ${canFill?'':'disabled'} onclick="acceptContract('${c.id}')">
+            ${canFill ? 'Fill →' : `Short ${c.qty-have}`}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Spot market
+  const spotGoods = [
+    {id:'egg',icon:'🥚',name:'Raw Eggs',price:2.2},
+    {id:'freeRange',icon:'🐓',name:'Free Range',price:5.5},
+    {id:'organic',icon:'🌿',name:'Organic',price:7.8},
+    {id:'powdered',icon:'🥛',name:'Powdered',price:6.0},
+    {id:'mayo',icon:'🫙',name:'Mayo Jar',price:14},
+    {id:'omelette',icon:'🍳',name:'Omelette',price:11.5},
+    {id:'cake',icon:'🎂',name:'Egg Cake',price:37},
+    {id:'custard',icon:'🍮',name:'Custard',price:18},
+    {id:'vaccine',icon:'💉',name:'Protein Serum',price:200},
+  ];
+  document.getElementById('spotMarket').innerHTML = spotGoods.map(g => {
+    const avail = Math.floor(G.inv[g.id] || 0);
+    const price = (g.price * mult).toFixed(2);
+    const sellAll = avail > 0;
+    return `<div class="card" style="margin:0 10px 8px;">
+      <div class="card-row">
+        <div style="font-size:1.8em;">${g.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.85em;font-weight:700;color:var(--text);">${g.name}</div>
+          <div style="font-size:.72em;color:var(--text2);">$${price}/unit &nbsp;·&nbsp; Stock: ${avail}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" ${avail<10?'disabled':''} onclick="sellSpot('${g.id}',10)">-10</button>
+          <button class="btn ${sellAll?'btn-gold':'btn-ghost'} btn-sm" ${!sellAll?'disabled':''} onclick="sellSpot('${g.id}',${avail})">All $${Math.floor(avail*g.price*mult)}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStaff() {
+  // Morale summary
+  const avgMorale = G.staff.length ? Math.round(G.staff.reduce((a,s) => a+(s.morale||100),0)/G.staff.length) : 100;
+  document.getElementById('staffMorale').innerHTML = `<div class="card" style="margin:10px 10px 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:.8em;font-weight:700;color:var(--text2);">Team Morale</div>
+      <span class="badge ${avgMorale>70?'badge-green':avgMorale>40?'badge-gold':'badge-red'}">${avgMorale}%</span>
+    </div>
+    <div class="progress"><div class="progress-fill ${avgMorale>70?'green':avgMorale>40?'gold':'red'}" style="width:${avgMorale}%"></div></div>
+    <div style="font-size:.7em;color:var(--text3);margin-top:5px;">Happy staff = higher bonuses. Pay on time!</div>
+  </div>`;
+
+  // Staff list
+  const sl = document.getElementById('staffList');
+  if(G.staff.length === 0) {
+    sl.innerHTML = `<div style="padding:14px;font-size:.82em;color:var(--text3);text-align:center;">No staff yet. Hire your first employee!</div>`;
+  } else {
+    sl.innerHTML = G.staff.map(s => `<div class="staff-card">
+      <div class="staff-header">
+        <div class="staff-avatar">${s.icon}</div>
+        <div class="staff-info">
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-role">${s.bonus}</div>
+          <div class="staff-skill">+${(s.value*100).toFixed(0)}% ${s.skill.replace(/([A-Z])/g,' $1').toLowerCase()}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:.65em;color:var(--text3);margin-bottom:2px;">MORALE</div>
+          <div class="morale-bar"><div class="morale-fill" style="width:${s.morale||100}%"></div></div>
+        </div>
+        <span class="salary-tag">$${s.salary}/day</span>
+        <button class="btn btn-ghost btn-sm" onclick="fireStaff('${s.id}')">Fire</button>
+      </div>
+    </div>`).join('');
+  }
+
+  // Bonuses active
+  const activeBonuses = G.staff.map(s =>
+    `<div class="card" style="margin:0 10px 6px;padding:10px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:.8em;">
+        <span>${s.icon}</span>
+        <span style="color:var(--green);font-weight:700;">+${(s.value*100*(G.staff.some(x=>x.skill==='megaBonus')?1.2:1)).toFixed(0)}%</span>
+        <span style="color:var(--text2);">${s.skill.replace(/([A-Z])/g,' $1').toLowerCase()}</span>
+      </div>
+    </div>`
+  );
+  document.getElementById('bonusList').innerHTML = activeBonuses.length ?
+    activeBonuses.join('') :
+    `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No bonuses active — hire staff to unlock.</div>`;
+}
+
+function renderTrucks() {
+  // Truck list
+  const tl = document.getElementById('truckList');
+  if(G.trucks.length === 0) {
+    tl.innerHTML = `<div class="card" style="margin:0 10px;"><div style="font-size:.82em;color:var(--text3);text-align:center;padding:12px 0;">No trucks yet. Buy your first truck!</div></div>`;
+  } else {
+    tl.innerHTML = G.trucks.map(t => {
+      const pct = t.status === 'dispatched' ? Math.min(100, (t.tripProgress||0) * 100) : 0;
+      const route = ROUTES.find(r => r.id === t.currentRoute);
+      const tDef = TRUCK_TYPES.find(x => x.id === t.type);
+      return `<div class="truck-track">
+        <div class="truck-row">
+          <div class="truck-icon">${tDef?.icon||'🚚'}</div>
+          <div class="truck-info">
+            <div class="truck-name">${t.name}</div>
+            <div class="truck-status">${t.status==='dispatched' ? `Delivering ${t.load} units → ${route?.name} (${Math.floor((1-t.tripProgress)*t.tripTime)}s)` : `Idle · Cap ${t.cap} units`}</div>
+          </div>
+          <span class="badge ${t.status==='dispatched'?'badge-gold':'badge-green'}">${t.status==='dispatched'?'En Route':'Ready'}</span>
+        </div>
+        ${t.status==='dispatched' ? `<div class="progress" style="margin-top:4px;"><div class="progress-fill gold" style="width:${pct}%"></div></div>` : ''}
+        ${t.status==='idle' ? `<div style="display:flex;gap:6px;margin-top:8px;">${
+          ROUTES.filter(r => tDef?.routes?.includes(r.id)).map(r =>
+            `<button class="btn btn-ghost btn-sm" onclick="dispatchTruck('${t.id}','${r.id}')">${r.icon} ${r.name}</button>`
+          ).join('')
+        }</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Routes info
+  document.getElementById('routeList').innerHTML = ROUTES.map(r => `
+    <div class="card" style="margin:0 10px 8px;">
+      <div class="card-row">
+        <div style="font-size:1.6em;">${r.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.85em;font-weight:700;color:var(--text);">${r.name}</div>
+          <div style="font-size:.72em;color:var(--text2);">Distance: ${r.dist}x &nbsp;·&nbsp; Volume: ${r.vol}</div>
+        </div>
+        <div style="text-align:right;"><div style="font-size:.82em;font-weight:700;color:var(--gold);">~${r.bonus}</div><div style="font-size:.68em;color:var(--text3);">base price</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderFinance() {
+  const profit = G.totalRevenue - G.totalExpenses;
+  document.getElementById('financeSummary').innerHTML = `
+    <div class="finance-summary">
+      <div style="font-size:.7em;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Net Profit</div>
+      <div class="fin-big ${profit>=0?'profit':'loss'}">$${Math.abs(Math.floor(profit)).toLocaleString()}</div>
+      <div style="font-size:.75em;color:var(--text2);margin-top:4px;">${profit>=0?'In the black ✅':'In the red ⚠️'}</div>
+    </div>
+    <div class="card" style="margin:0 10px 10px;">
+      <div class="ledger-row"><span class="ledger-label">Total Revenue</span><span class="ledger-val in">+$${Math.floor(G.totalRevenue).toLocaleString()}</span></div>
+      <div class="ledger-row"><span class="ledger-label">Total Expenses</span><span class="ledger-val out">-$${Math.floor(G.totalExpenses).toLocaleString()}</span></div>
+      <div class="ledger-row"><span class="ledger-label">Today Revenue</span><span class="ledger-val in">+$${Math.floor(G.dailyRevenue).toLocaleString()}</span></div>
+      <div class="ledger-row"><span class="ledger-label">Payroll/Day</span><span class="ledger-val out">-$${getPayroll()}</span></div>
+      <div class="ledger-row"><span class="ledger-label">Cash on Hand</span><span class="ledger-val" style="color:var(--gold)">$${Math.floor(G.cash).toLocaleString()}</span></div>
+    </div>
+  `;
+
+  document.getElementById('ledger').innerHTML = G.ledger.length === 0 ?
+    `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No transactions yet.</div>` :
+    G.ledger.map(e => `
+      <div class="card" style="margin:0 10px 5px;padding:9px 13px;">
+        <div class="ledger-row" style="padding:0;border:none;">
+          <span class="ledger-label" style="font-size:.78em;">Day ${e.day} · ${e.desc}</span>
+          <span class="ledger-val ${e.amount>0?'in':e.amount<0?'out':''}" style="font-size:.82em;">${e.amount>0?'+':e.amount<0?'':''} ${e.amount!==0?'$'+Math.abs(e.amount):'—'}</span>
+        </div>
+      </div>`).join('');
+
+  // Milestones
+  const ALL_MILESTONES = [
+    {id:'first_sale',icon:'🥚',label:'First Sale'},
+    {id:'cash_500',icon:'💰',label:'$500 Cash'},
+    {id:'cash_2k',icon:'💵',label:'$2,000 Cash'},
+    {id:'factory_run',icon:'🏭',label:'Factory Run'},
+    {id:'staff_3',icon:'👷',label:'Full Team (3)'},
+    {id:'truck_fleet',icon:'🚚',label:'2 Trucks'},
+    {id:'contract_5',icon:'📋',label:'5 Contracts'},
+    {id:'revenue_10k',icon:'📈',label:'$10K Revenue'},
+  ];
+  document.getElementById('milestones').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 10px 14px;">
+    ${ALL_MILESTONES.map(m => `
+      <div style="display:flex;align-items:center;gap:6px;background:var(--surface${G.milestones[m.id]?'':'2'});
+        border:1.5px solid ${G.milestones[m.id]?'var(--gold2)':'var(--border)'};border-radius:20px;
+        padding:6px 12px;font-size:.75em;font-weight:700;
+        opacity:${G.milestones[m.id]?1:.45};">
+        <span>${m.icon}</span><span>${m.label}</span>${G.milestones[m.id]?'<span style="color:var(--gold)">✓</span>':''}
+      </div>`).join('')}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════════
+function openModal(title, html) {
+  closeModal();
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg'; bg.id = 'modalBg';
+  bg.innerHTML = `<div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-drag"></div>
+      <div class="modal-title">${title}</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">${html}</div>
+  </div>`;
+  bg.addEventListener('click', e => { if(e.target === bg) closeModal(); });
+  document.body.appendChild(bg);
+}
+function closeModal() { const m = document.getElementById('modalBg'); if(m) m.remove(); }
+
+function openHireModal() {
+  const html = STAFF_ROLES.map(r => {
+    const hired = G.staff.some(s => s.id === r.id);
+    const hireCost = r.salary * 7;
+    const canAfford = G.cash >= hireCost;
+    const full = G.staff.length >= G.maxStaff;
+    return `<div class="card" style="margin:8px 10px;">
+      <div class="card-row">
+        <div style="font-size:1.9em;">${r.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.88em;font-weight:700;color:var(--text);">${r.name}</div>
+          <div style="font-size:.72em;color:var(--text2);margin-top:2px;">${r.bonus}</div>
+          <div style="font-size:.7em;color:var(--text3);margin-top:2px;">Salary: $${r.salary}/day · Hire cost: $${hireCost}</div>
+        </div>
+        <button class="btn ${hired?'btn-ghost':canAfford&&!full?'btn-gold':'btn-ghost'} btn-sm" 
+          ${hired||!canAfford||full?'disabled':''} onclick="hireStaff('${r.id}')">
+          ${hired?'Hired':full?'Full':'$'+hireCost}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('👷 Hire Staff', `<div style="padding:4px 0 0;font-size:.78em;color:var(--text3);text-align:center;padding:8px 14px 4px;">Slots: ${G.staff.length}/${G.maxStaff} used</div>${html}`);
+}
+
+function openBuyTruckModal() {
+  const html = TRUCK_TYPES.map(t => {
+    const owned = G.trucks.some(x => x.type === t.id);
+    const canAfford = G.cash >= t.cost;
+    const full = G.trucks.length >= G.maxTrucks;
+    return `<div class="card" style="margin:8px 10px;">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div style="font-size:2.2em;">${t.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:.88em;font-weight:700;color:var(--text);">${t.name}</div>
+          <div style="font-size:.72em;color:var(--text2);margin-top:2px;">Cap: ${t.cap} · Routes: ${t.routes.map(r=>ROUTES.find(x=>x.id===r)?.name||r).join(', ')}</div>
+        </div>
+        <button class="btn ${owned?'btn-ghost':canAfford&&!full?'btn-gold':'btn-ghost'} btn-sm"
+          ${owned||!canAfford||full?'disabled':''} onclick="buyTruck('${t.id}')">
+          ${owned?'Owned':full?'Fleet Full':'$'+t.cost.toLocaleString()}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  openModal('🚚 Buy a Truck', `<div style="padding:4px 0 0;font-size:.78em;color:var(--text3);text-align:center;padding:8px 14px 4px;">Fleet: ${G.trucks.length}/${G.maxTrucks}</div>${html}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.zone').forEach(z => z.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('zone-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  // Render on switch
+  if(tab === 'farm') renderFarm();
+  if(tab === 'factory') renderFactory();
+  if(tab === 'market') renderMarket();
+  if(tab === 'staff') renderStaff();
+  if(tab === 'trucks') renderTrucks();
+  if(tab === 'finance') renderFinance();
+}
+
+// ══════════════════════════════════════════════════════
+//  FLOATERS & TOAST
+// ══════════════════════════════════════════════════════
+function spawnFloat(text, e, x, y) {
+  const el = document.createElement('div');
+  el.className = 'floater';
+  const px = e ? e.clientX || x || window.innerWidth/2 : (x || window.innerWidth/2);
+  const py = e ? e.clientY || y || window.innerHeight/2 : (y || window.innerHeight/2);
+  el.textContent = text;
+  el.style.cssText = `left:${px-30}px;top:${py-20}px;color:var(--gold);`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+let toastT = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+// Generate initial contracts if none
+if(G.contracts.length === 0) generateContracts(3);
+
+// Initial render
+renderFarm();
+updateUI();
+
+// Start game loop
+startTick();
+
+// Periodic UI refresh
+setInterval(() => {
+  updateUI();
+  // Update visible zone
+  const activeZone = document.querySelector('.zone.active')?.id?.replace('zone-','');
+  if(activeZone === 'factory') renderFactory();
+  if(activeZone === 'trucks') renderTrucks();
+  if(activeZone === 'market') renderMarket();
+  if(activeZone === 'finance') renderFinance();
+}, 2000);
+
+// Welcome
+setTimeout(() => showToast('🌾 Welcome! Tap coops to produce, sell via Market or Fleet.'), 800);
+setTimeout(() => showToast('💡 Tip: Hire staff to automate your farm!'), 8000);
+setTimeout(() => showToast('📋 New contracts available in the Market tab!'), 16000);
+</script>
+</body>
+</html>
