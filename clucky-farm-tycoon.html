@@ -58,6 +58,48 @@
       color: var(--text);
     }
 
+    /* ══ LEVEL BANNER ══ */
+    #levelBanner {
+      background: linear-gradient(90deg, #2D3F1E, #3D5429);
+      border-bottom: 2px solid var(--gold2);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .lb-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lb-badge {
+      background: var(--gold);
+      color: #3A2800;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1em;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .lb-goal {
+      font-size: .75em;
+      color: var(--text);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .lb-progress {
+      font-family: 'Syne', sans-serif;
+      font-size: .9em;
+      font-weight: 700;
+      color: var(--gold3);
+    }
+
     /* ══ SCROLLBAR ══ */
     ::-webkit-scrollbar {
       width: 4px;
@@ -1061,6 +1103,15 @@
 <body>
   <div id="app">
 
+    <!-- LEVEL BANNER -->
+    <div id="levelBanner">
+      <div class="lb-left">
+        <div class="lb-badge" id="lbLevel">Lv 1</div>
+        <div class="lb-goal" id="lbDesc">Loading goal...</div>
+      </div>
+      <div class="lb-progress" id="lbProgress">0%</div>
+    </div>
+
     <!-- TAB BAR -->
     <div id="tabBar">
       <div class="tab active" onclick="switchTab('farm')" id="tab-farm">
@@ -1197,25 +1248,26 @@
     //  CORE STATE
     // ══════════════════════════════════════════════════════
     const DEF = {
-      cash: 150, day: 1, tick: 0, season: 0,
+      cash: 300, day: 1, tick: 0, season: 0,
+      level: 1, levelReqs: [],
       totalRevenue: 0, totalExpenses: 0, lifetimeEggs: 0,
       prestige: 0, prestigeMult: 1,
 
       // Inventory - raw & processed goods
       inv: {
-        egg: 0, feedWheat: 30, feedCorn: 20, water: 50,
+        egg: 0, feedWheat: 100, feedCorn: 50, water: 100,
         freeRange: 0, organic: 0, powdered: 0, mayo: 0, omelette: 0, cake: 0, custard: 0, vaccine: 0
       },
       invCap: { egg: 80, feedWheat: 200, feedCorn: 200, water: 200 },
 
-      // Plots: id, type, level, workers[], lastHarvest, autoHarvest
+      // Plots: id, type, level, workers[], lastHarvest, autoHarvest, stored
       plots: [
-        { id: 'p1', type: 'henCoop', level: 1, workers: [], eggs: 0, eggCap: 20, cooldown: 0, autoHarvest: false, unlocked: true },
-        { id: 'p2', type: 'feedFarm', level: 1, workers: [], output: 0, rate: 0.5, cooldown: 0, autoHarvest: false, unlocked: true },
-        { id: 'p3', type: 'waterWell', level: 1, workers: [], output: 0, rate: 1.0, cooldown: 0, autoHarvest: false, unlocked: false },
-        { id: 'p4', type: 'henCoop', level: 0, workers: [], eggs: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
-        { id: 'p5', type: 'organicFarm', level: 0, workers: [], eggs: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
-        { id: 'p6', type: 'hatchery', level: 0, workers: [], eggs: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
+        { id: 'p1', type: 'henCoop', level: 1, workers: [], stored: 0, eggCap: 20, cooldown: 0, autoHarvest: false, unlocked: true },
+        { id: 'p2', type: 'feedFarm', level: 1, workers: [], stored: 0, rate: 0.5, cooldown: 0, autoHarvest: false, unlocked: true },
+        { id: 'p3', type: 'waterWell', level: 1, workers: [], stored: 0, rate: 1.0, cooldown: 0, autoHarvest: false, unlocked: false },
+        { id: 'p4', type: 'henCoop', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
+        { id: 'p5', type: 'organicFarm', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
+        { id: 'p6', type: 'hatchery', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
       ],
 
       // Factory queue
@@ -1285,11 +1337,11 @@
     ];
 
     const PLOT_DEFS = {
-      henCoop: { icon: '🐔', name: 'Hen Coop', output: 'egg', baseRate: 3.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 8 },
-      feedFarm: { icon: '🌾', name: 'Feed Farm', output: 'feedWheat', baseRate: 2.0, feedNeeds: { water: 1 }, unlockCost: 80, maxLevel: 6 },
-      waterWell: { icon: '💧', name: 'Water Well', output: 'water', baseRate: 3.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
-      organicFarm: { icon: '🌿', name: 'Organic Coop', output: 'organic', baseRate: 0.8, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
-      hatchery: { icon: '🐣', name: 'Hatchery', output: 'freeRange', baseRate: 0.5, feedNeeds: { feedWheat: 1, feedCorn: 1, water: 2 }, unlockCost: 600, maxLevel: 4 },
+      henCoop: { icon: '🐔', name: 'Hen Coop', output: 'egg', baseRate: 10.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 8 },
+      feedFarm: { icon: '🌾', name: 'Feed Farm', output: 'feedWheat', baseRate: 15.0, feedNeeds: { water: 1 }, unlockCost: 80, maxLevel: 6 },
+      waterWell: { icon: '💧', name: 'Water Well', output: 'water', baseRate: 20.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
+      organicFarm: { icon: '🌿', name: 'Organic Coop', output: 'organic', baseRate: 4.0, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
+      hatchery: { icon: '🐣', name: 'Hatchery', output: 'freeRange', baseRate: 2.0, feedNeeds: { feedWheat: 1, feedCorn: 1, water: 2 }, unlockCost: 600, maxLevel: 4 },
     };
 
     const RECIPES = [
@@ -1305,7 +1357,7 @@
 
     const STAFF_ROLES = [
       { id: 'farmer', icon: '👨‍🌾', name: 'Farmer', salary: 12, bonus: 'Harvests plots automatically', skill: 'autoHarvest', value: 1 },
-      { id: 'driver', icon: '🚛', name: 'Truck Driver', salary: 18, bonus: 'Runs one truck route per day', skill: 'truckBonus', value: 1 },
+      { id: 'driver', icon: '🚛', name: 'Truck Driver', salary: 18, bonus: 'Auto-dispatches full trucks', skill: 'truckBonus', value: 1 },
       { id: 'chef', icon: '👨‍🍳', name: 'Factory Chef', salary: 22, bonus: '+25% factory speed', skill: 'factorySpeed', value: 0.25 },
       { id: 'trader', icon: '📈', name: 'Market Trader', salary: 20, bonus: '+15% all sell prices', skill: 'priceBonus', value: 0.15 },
       { id: 'vet', icon: '🐾', name: 'Farm Vet', salary: 15, bonus: '+30% coop production', skill: 'coopBonus', value: 0.30 },
@@ -1345,6 +1397,7 @@
       { id: 'coopSpeed', icon: '⚡', name: 'Coop Speed Boost', desc: 'All coops produce 20% faster.', cost: 180, effect: 'coopSpeed', repeatable: true, count: 0, max: 6 },
       { id: 'waterEff', icon: '💧', name: 'Water Recycler', desc: '50% less water used.', cost: 220, effect: 'waterEff', repeatable: false, count: 0, max: 1 },
       { id: 'factSlots', icon: '🏭', name: 'Factory Slot +1', desc: 'Process one more recipe at once.', cost: 350, effect: 'factorySlots++', repeatable: true, count: 0, max: 3 },
+      { id: 'factLevel', icon: '🏗️', name: 'Factory Expansion', desc: 'Unlocks advanced recipes.', cost: 800, effect: 'factoryLevel++', repeatable: true, count: 0, max: 4 },
       { id: 'staffSlot', icon: '👷', name: 'Hire +1 Staff Slot', desc: 'Expand your team capacity.', cost: 250, effect: 'maxStaff++', repeatable: true, count: 0, max: 5 },
       { id: 'truckSlot', icon: '🚚', name: 'Fleet Slot +1', desc: 'Buy an additional truck.', cost: 500, effect: 'maxTrucks++', repeatable: true, count: 0, max: 4 },
       { id: 'autoCollect', icon: '🤖', name: 'Auto-Collect System', desc: 'All plots auto-harvest every 30s.', cost: 600, effect: 'autoCollect', repeatable: false, count: 0, max: 1 },
@@ -1411,6 +1464,9 @@
       // Auto-staff actions
       autoStaffActions();
 
+      // Check level progress
+      if (G.tick % 2 === 0) checkLevelProgress();
+
       // Update UI
       updateUI();
 
@@ -1459,6 +1515,7 @@
         const hasFeed = Object.entries(feedNeeds).every(([item, amt]) =>
           (G.inv[item] || 0) >= amt * getFeedEff() * 0.016 // per tick fraction
         );
+        plot.starving = !hasFeed;
         if (!hasFeed) return;
 
         // Consume feed
@@ -1467,9 +1524,12 @@
         });
 
         const rate = def.baseRate * plot.level * prodMult * (1 / 60); // per tick
-        const cap = G.invCap[def.output] || 999;
-        G.inv[def.output] = Math.min(cap, (G.inv[def.output] || 0) + rate);
 
+        // Instead of adding directly to global inv, add to plot's local storage
+        const cap = 100 * plot.level; // Local plot storage cap
+        plot.stored = Math.min(cap, (plot.stored || 0) + rate);
+
+        // Stats
         if (def.output === 'egg') G.lifetimeEggs += rate;
       });
     }
@@ -1513,10 +1573,32 @@
       // Farmers auto-harvest (if auto-collect upgrade or farmer staff)
       const hasFarmer = G.staff.some(s => s.skill === 'autoHarvest');
       const hasAutoCollect = G.upgrades.autoCollect;
-      if ((hasFarmer || hasAutoCollect) && G.tick % 30 === 0) {
+      if ((hasFarmer || hasAutoCollect) && G.tick % 5 === 0) {
         G.plots.forEach(plot => {
-          if (plot.unlocked && plot.level >= 1 && plot.type === 'henCoop') {
-            // already handled in producePlots, but triggers a harvest notification
+          if (plot.unlocked && plot.level >= 1 && (plot.stored || 0) >= 1) {
+            harvestPlot(plot.id, null, true);
+          }
+        });
+      }
+
+      // Drivers auto-dispatch trucks
+      const hasDriver = G.staff.some(s => s.skill === 'truckBonus');
+      if (hasDriver && G.tick % 10 === 0) {
+        G.trucks.forEach(truck => {
+          if (truck.active && truck.status === 'idle') {
+            const availEggs = Math.floor(G.inv.egg || 0);
+            const loadAmt = Math.min(availEggs, truck.cap);
+            if (loadAmt >= truck.cap || loadAmt >= 50) { // Dispatch if full or at least 50
+              const tDef = TRUCK_TYPES.find(t => t.id === truck.type);
+              if (tDef) {
+                // Find best route
+                const routes = tDef.routes.map(rId => ROUTES.find(r => r.id === rId)).filter(Boolean);
+                if (routes.length > 0) {
+                  const bestRoute = routes.sort((a, b) => b.basePrice - a.basePrice)[0];
+                  dispatchTruck(truck.id, bestRoute.id, true);
+                }
+              }
+            }
           }
         });
       }
@@ -1540,15 +1622,41 @@
     // ══════════════════════════════════════════════════════
     //  PLAYER ACTIONS
     // ══════════════════════════════════════════════════════
-    function harvestPlot(plotId) {
+    function harvestPlot(plotId, event, auto = false) {
+      if (event) event.stopPropagation(); // prevent clicking behind
       const plot = G.plots.find(p => p.id === plotId);
       if (!plot || !plot.unlocked || plot.level < 1) return;
+
       const def = PLOT_DEFS[plot.type];
-      const current = Math.floor(G.inv[def.output] || 0);
-      if (current < 1) { showToast(`Nothing to harvest yet!`); return; }
-      spawnFloat(`+${current} ${def.icon}`, event);
-      showToast(`Harvested ${current} ${def.output} from ${def.name}`);
-      // Already tracked in inv, just show feedback
+      let stored = Math.floor(plot.stored || 0);
+
+      const cap = G.invCap[def.output] || 999;
+      const currentInv = G.inv[def.output] || 0;
+      const spaceLeft = cap - currentInv;
+
+      if (spaceLeft <= 0) {
+        if (!auto) showToast(`Inventory full for ${def.output}!`);
+        return;
+      }
+
+      let tapBonus = 0;
+      if (!auto) {
+        tapBonus = Math.max(1, Math.floor(def.baseRate * plot.level * 0.2));
+      }
+
+      let totalAvailable = stored + tapBonus;
+      if (totalAvailable < 1 && auto) return;
+
+      let toHarvest = Math.floor(totalAvailable);
+      if (toHarvest > spaceLeft) toHarvest = spaceLeft;
+
+      if (toHarvest > 0) {
+        const takeFromStorage = Math.max(0, toHarvest - tapBonus);
+        plot.stored = Math.max(0, plot.stored - takeFromStorage);
+        G.inv[def.output] = currentInv + toHarvest;
+
+        if (!auto && event) spawnFloat(`+${toHarvest} ${def.icon}`, event);
+      }
     }
 
     function unlockPlot(plotId) {
@@ -1588,7 +1696,7 @@
       if (G.factoryQueue.length >= G.factorySlots * 2) { showToast('Factory queue full!'); return; }
       // Check inputs
       for (const [item, amt] of Object.entries(recipe.inputs)) {
-        if ((G.inv[item] || 0) < amt) { showToast(`Need ${amt} ${item}!`); return; }
+        if ((G.inv[item] || 0) < amt) { showToast(`Need ${amt} ${item} (Tap plots to harvest!)`); return; }
       }
       // Consume inputs
       for (const [item, amt] of Object.entries(recipe.inputs)) G.inv[item] -= amt;
@@ -1639,24 +1747,24 @@
       save(); renderMarket();
     }
 
-    function dispatchTruck(truckId, routeId) {
+    function dispatchTruck(truckId, routeId, auto = false) {
       const truck = G.trucks.find(t => t.id === truckId);
       const route = ROUTES.find(r => r.id === routeId);
       if (!truck || !route) return;
-      if (truck.status !== 'idle') { showToast('Truck already on the road!'); return; }
+      if (truck.status !== 'idle') { if (!auto) showToast('Truck already on the road!'); return; }
       // Check if route allowed for truck type
       const truckDef = TRUCK_TYPES.find(t => t.id === truck.type);
-      if (!truckDef.routes.includes(routeId)) { showToast(`This truck can't access ${route.name}`); return; }
+      if (!truckDef.routes.includes(routeId)) { if (!auto) showToast(`This truck can't access ${route.name}`); return; }
       // Load eggs
       const loadAmt = Math.min(Math.floor(G.inv.egg || 0), truck.cap);
-      if (loadAmt < 5) { showToast('Need at least 5 eggs to dispatch!'); return; }
+      if (loadAmt < 5) { if (!auto) showToast('Need at least 5 eggs to dispatch!'); return; }
       G.inv.egg -= loadAmt;
       truck.status = 'dispatched';
       truck.currentRoute = routeId;
       truck.load = loadAmt;
       truck.tripProgress = 0;
       truck.tripTime = Math.floor(60 * route.dist / (truckDef.speed || 1)); // ticks
-      showToast(`🚚 ${truck.name} dispatched to ${route.name} with ${loadAmt} eggs!`);
+      if (!auto) showToast(`🚚 ${truck.name} dispatched to ${route.name} with ${loadAmt} eggs!`);
       save(); renderTrucks();
     }
 
@@ -1713,6 +1821,7 @@
       // Apply effect
       if (upgradeId === 'eggCap') G.invCap.egg = (G.invCap.egg || 80) + 50;
       if (upgradeId === 'factSlots') G.factorySlots = Math.min(4, (G.factorySlots || 1) + 1);
+      if (upgradeId === 'factLevel') G.factoryLevel = (G.factoryLevel || 1) + 1;
       if (upgradeId === 'staffSlot') G.maxStaff = (G.maxStaff || 3) + 1;
       if (upgradeId === 'truckSlot') G.maxTrucks = (G.maxTrucks || 1) + 1;
       if (upgradeId === 'autoCollect') G.upgrades.autoCollect = true;
@@ -1817,6 +1926,20 @@
       // Contract timer
       const soonest = G.contracts.filter(c => !c.accepted).sort((a, b) => a.ticksLeft - b.ticksLeft)[0];
       if (soonest) document.getElementById('contractTimer').textContent = `Next expires in ${Math.floor(soonest.ticksLeft / 60)}m ${soonest.ticksLeft % 60}s`;
+
+      // Level Banner
+      document.getElementById('lbLevel').textContent = `Lv ${G.level || 1}`;
+      if (!G.levelReqs || G.levelReqs.length === 0) return;
+
+      const req = G.levelReqs[0];
+      let currentVal = 0;
+      if (req.type === 'cash') currentVal = G.cash;
+      if (req.type === 'revenue') currentVal = G.totalRevenue;
+      if (req.type === 'item') currentVal = G.inv[req.target] || 0;
+
+      document.getElementById('lbDesc').textContent = req.desc;
+      const pct = Math.min(100, Math.floor((currentVal / req.amount) * 100));
+      document.getElementById('lbProgress').textContent = `${pct}%`;
     }
 
     function renderFarm() {
@@ -1825,9 +1948,9 @@
       pg.innerHTML = G.plots.map(plot => {
         const def = PLOT_DEFS[plot.type];
         if (!def) return '';
-        const output = G.inv[def.output] || 0;
-        const cap = G.invCap[def.output] || 100;
-        const pct = Math.min(100, output / cap * 100);
+        const output = plot.stored || 0;
+        const localCap = 100 * plot.level;
+        const pct = Math.min(100, output / localCap * 100);
         const upgCost = Math.floor(80 * Math.pow(1.8, plot.level));
 
         if (!plot.unlocked) {
@@ -1840,16 +1963,19 @@
         }
 
         const canAfford = G.cash >= upgCost && plot.level < def.maxLevel;
-        return `<div class="plot-card ${plot.level > 0 ? 'active-plot' : ''}">
+        const starvationWarning = plot.starving ? `<span style="color:var(--red); font-size:0.85em; font-weight:bold;">⚠️ Needs Feed/Water!</span>` : '';
+
+        return `<div class="plot-card ${plot.level > 0 ? 'active-plot' : ''}" onclick="harvestPlot('${plot.id}', event)">
       <div class="plot-label">${def.icon} ${def.name.toUpperCase()}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div class="plot-name">Level ${plot.level}/${def.maxLevel}</div>
         <span class="badge ${canAfford ? 'badge-gold' : 'badge-blue'}">+${(def.baseRate * plot.level * getProductionMultiplier() * getCoopSpeed() * getCoopBonus()).toFixed(1)}/min</span>
       </div>
-      <div class="plot-output">${def.icon} ${Math.floor(output)} ${def.output}${cap < 999 ? ` / ${cap}` : ''}</div>
+      <div class="plot-output">${def.icon} ${Math.floor(output)} ready to harvest ${starvationWarning}</div>
       <div class="plot-bar-wrap"><div class="progress"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
+      <div style="font-size:0.65em; text-align:center; margin-top:4px; opacity:0.6; font-weight:bold;">TAP TO HARVEST</div>
       <div style="display:flex;gap:6px;margin-top:8px;">
-        ${plot.level < def.maxLevel ? `<button class="btn btn-gold btn-sm" style="flex:1" ${G.cash < upgCost ? 'disabled' : ''} onclick="upgradePlot('${plot.id}')">⬆️ $${upgCost}</button>` : `<span class="badge badge-green" style="padding:6px 10px;flex:1;text-align:center;">MAX</span>`}
+        ${plot.level < def.maxLevel ? `<button class="btn btn-gold btn-sm" style="flex:1" ${G.cash < upgCost ? 'disabled' : ''} onclick="event.stopPropagation(); upgradePlot('${plot.id}')">⬆️ $${upgCost}</button>` : `<span class="badge badge-green" style="padding:6px 10px;flex:1;text-align:center;">MAX</span>`}
       </div>
     </div>`;
       }).join('');
@@ -2271,10 +2397,119 @@
     }
 
     // ══════════════════════════════════════════════════════
+    //  LEVELING SYSTEM
+    // ══════════════════════════════════════════════════════
+    function generateLevelGoals() {
+      if (!G.level) G.level = 1;
+      const lvl = G.level;
+
+      // Scale requirements exponentially
+      const reqs = [];
+      if (lvl === 1) {
+        reqs.push({ type: 'revenue', amount: 2000, desc: 'Earn $2,000 Total Revenue' });
+      } else if (lvl === 2) {
+        reqs.push({ type: 'cash', amount: 3000, desc: 'Save $3,000 Cash on hand' });
+      } else {
+        const typeRoll = Math.random();
+        if (typeRoll < 0.33) {
+          const targetRev = Math.floor(2000 * Math.pow(1.6, lvl - 1));
+          reqs.push({ type: 'revenue', amount: targetRev, desc: `Earn $${targetRev.toLocaleString()} Total Revenue` });
+        } else if (typeRoll < 0.66) {
+          const targetCash = Math.floor(1500 * Math.pow(1.6, lvl - 1));
+          reqs.push({ type: 'cash', amount: targetCash, desc: `Save $${targetCash.toLocaleString()} Cash on hand` });
+        } else {
+          // Item hoarding
+          const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
+          const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
+          const targetQty = Math.floor(5 * Math.pow(1.4, lvl - 2));
+          reqs.push({ type: 'item', target: targetItem, amount: targetQty, desc: `Hoard ${targetQty} ${targetItem}s in Inventory` });
+        }
+      }
+      G.levelReqs = reqs;
+    }
+
+    function checkLevelProgress() {
+      if (!G.levelReqs || G.levelReqs.length === 0) generateLevelGoals();
+
+      let allMet = true;
+      G.levelReqs.forEach(req => {
+        let val = 0;
+        if (req.type === 'revenue') val = G.totalRevenue;
+        if (req.type === 'cash') val = G.cash;
+        if (req.type === 'item') val = G.inv[req.target] || 0;
+        if (val < req.amount) allMet = false;
+      });
+
+      if (allMet && !document.getElementById('modalBg')) {
+        showLevelCompleteModal();
+      }
+    }
+
+    function showLevelCompleteModal() {
+      const pGain = 0.5; // +50% multiplier per level
+      const newMult = (G.prestigeMult + pGain).toFixed(1);
+      openModal(`🎉 Level ${G.level} Complete!`, `
+        <div style="padding:15px; font-size:0.9em; line-height:1.6; color:var(--text); text-align:center;">
+          <div style="font-size:3em; margin-bottom:10px;">🌟</div>
+          <p style="margin-bottom:10px;">You are an egg-ceptional tycoon!</p>
+          <p style="color:var(--text2); margin-bottom:20px; font-size:0.9em;">
+            Moving to the next level will <strong style="color:var(--red);">reset your cash, inventory, and plot levels</strong> 
+            to start fresh.<br><br>
+            However, you will <strong style="color:var(--green);">KEEP</strong> all Unlocked Plots, Farm Upgrades, Trucks, and Staff!
+          </p>
+          <div class="card" style="margin-bottom:20px; text-align:center; padding:10px;">
+            <div style="font-size:0.8em; color:var(--text3); font-weight:bold; letter-spacing:1px; text-transform:uppercase;">Permanent Prestige Multiplier</div>
+            <div style="font-size:1.8em; font-family:'Syne'; color:var(--gold); font-weight:800;">
+              ${G.prestigeMult.toFixed(1)}x ➜ ${newMult}x
+            </div>
+            <div style="font-size:0.8em; color:var(--text2); margin-top:5px;">Applies to all sale prices permanently!</div>
+          </div>
+          <button class="btn btn-gold btn-full" onclick="advanceLevel()">Advance to Level ${G.level + 1} &rarr;</button>
+        </div>
+      `);
+    }
+
+    function advanceLevel() {
+      G.level++;
+      G.prestigeMult += 0.5;
+
+      // Wipe the board
+      G.cash = 300;
+      G.totalRevenue = 0;
+      G.totalExpenses = 0;
+
+      // Clear inventory
+      Object.keys(G.inv).forEach(k => G.inv[k] = 0);
+      G.inv.feedWheat = 100;
+      G.inv.feedCorn = 50;
+      G.inv.water = 100;
+
+      // Reset plots but keep them unlocked
+      G.plots.forEach(plot => {
+        plot.stored = 0;
+        if (plot.unlocked) plot.level = 1;
+      });
+
+      // Clear queues and contracts
+      G.factoryQueue = [];
+      G.contracts = [];
+      generateContracts(3);
+
+      generateLevelGoals();
+
+      closeModal();
+      showToast(`🌟 Welcome to Level ${G.level}! Multiplier is now ${G.prestigeMult.toFixed(1)}x!`);
+      save();
+      updateUI();
+      renderFarm();
+    }
+
+    // ══════════════════════════════════════════════════════
     //  INIT
     // ══════════════════════════════════════════════════════
     // Generate initial contracts if none
     if (G.contracts.length === 0) generateContracts(3);
+    if (!G.levelReqs || G.levelReqs.length === 0) generateLevelGoals();
 
     // Initial render
     renderFarm();
@@ -2294,9 +2529,23 @@
       if (activeZone === 'finance') renderFinance();
     }, 2000);
 
-    // Welcome
-    setTimeout(() => showToast('🌾 Welcome! Tap coops to produce, sell via Market or Fleet.'), 800);
-    setTimeout(() => showToast('💡 Tip: Hire staff to automate your farm!'), 8000);
+    // Welcome Tutorial
+    if (!G.milestones.first_sale && G.lifetimeEggs === 0) {
+      setTimeout(() => {
+        openModal('🐔 Welcome to Clucky Farm!', `
+          <div style="padding:15px; font-size:0.9em; line-height:1.6; color:var(--text2);">
+            <p style="margin-bottom:10px;">Welcome to the farm, Tycoon! Let's get started:</p>
+            <ol style="margin-left:20px; margin-bottom:15px;">
+              <li><strong style="color:var(--gold);">Tap your active plots</strong> (Hen Coop, Feed Farm) to harvest goods as they produce them.</li>
+              <li>Your chickens <strong style="color:var(--text);">need Water and Feed</strong> to produce eggs. Make sure your Feed Farm is producing!</li>
+              <li>Go to the <strong style="color:var(--text);">Market tab</strong> to sell your raw eggs for cash.</li>
+              <li>Use your cash to <strong style="color:var(--green);">upgrade plots</strong> or unlock new ones!</li>
+            </ol>
+            <button class="btn btn-gold btn-full" onclick="closeModal()">Let's Farm!</button>
+          </div>
+        `);
+      }, 500);
+    }
     setTimeout(() => showToast('📋 New contracts available in the Market tab!'), 16000);
   </script>
 </body>
