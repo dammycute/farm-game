@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clucky Farm 🐔</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+:root{
+  --sky:#6ec6ff;--sky2:#b8e4ff;--grass:#5db84a;--grass2:#4aa337;
+  --gold:#ffd43b;--gold2:#f59f00;--red:#f03e3e;--green:#40c057;
+  --panel:#fffbef;--shadow:rgba(0,0,0,0.18);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);font-family:'Nunito',sans-serif;}
+#gameCanvas{position:relative;width:100vw;height:100vh;overflow:hidden;
+  background:linear-gradient(180deg,#6ec6ff 0%,#b8e4ff 45%,#5db84a 45%,#4aa337 100%);}
+.sun{position:absolute;top:18px;right:24px;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle,#ffe066,#ffa94d);
+  box-shadow:0 0 0 8px rgba(255,224,102,.25),0 0 0 16px rgba(255,224,102,.12);
+  animation:sunbeat 3s ease-in-out infinite;z-index:1;}
+@keyframes sunbeat{0%,100%{box-shadow:0 0 0 8px rgba(255,224,102,.25),0 0 0 16px rgba(255,224,102,.12)}
+  50%{box-shadow:0 0 0 12px rgba(255,224,102,.35),0 0 0 24px rgba(255,224,102,.15)}}
+.cloud{position:absolute;background:white;border-radius:50px;opacity:.88;animation:cloudMove linear infinite;}
+.cloud::before,.cloud::after{content:'';position:absolute;background:white;border-radius:50%;}
+@keyframes cloudMove{from{transform:translateX(-180px)}to{transform:translateX(110vw)}}
+.ground-path{position:absolute;background:linear-gradient(90deg,#c9a97f,#d4b88a 30%,#c9a97f 60%,#b89060);
+  border-radius:12px;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+.road-strip{position:absolute;background:linear-gradient(180deg,#6e6e6e,#555);
+  border-top:3px solid #888;border-bottom:3px solid #444;z-index:4;}
+.road-strip::after{content:'';position:absolute;top:50%;left:0;right:0;height:3px;
+  background:repeating-linear-gradient(90deg,#ffd43b 0,#ffd43b 20px,transparent 20px,transparent 40px);
+  transform:translateY(-50%);}
+/* BUILDINGS */
+.farm-building{position:absolute;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;z-index:10;transition:transform .12s;-webkit-user-select:none;}
+.farm-building:active{transform:scale(.89)!important;}
+.building-body{border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:2.6em;
+  box-shadow:0 6px 0 rgba(0,0,0,.22),0 8px 20px rgba(0,0,0,.15);position:relative;
+  border:3px solid rgba(255,255,255,.5);transition:transform .12s,box-shadow .12s;}
+.farm-building:active .building-body{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.2);}
+.building-label{margin-top:5px;font-size:.68em;font-weight:800;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);background:rgba(0,0,0,.35);
+  padding:2px 8px;border-radius:8px;white-space:nowrap;}
+.bld-badge{position:absolute;top:-10px;right:-10px;background:#f03e3e;color:white;
+  font-size:.58em;font-weight:900;padding:3px 7px;border-radius:20px;
+  border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);min-width:24px;text-align:center;display:none;}
+.locked-overlay{position:absolute;inset:0;border-radius:14px;background:rgba(0,0,0,.58);
+  display:flex;align-items:center;justify-content:center;font-size:1.4em;flex-direction:column;gap:2px;}
+.locked-overlay span{font-size:.38em;font-weight:800;color:#ffd43b;text-align:center;}
+/* harvest ring */
+.coop-progress{position:absolute;top:-10px;right:-10px;width:30px;height:30px;}
+.coop-progress svg{transform:rotate(-90deg);}
+.cp-bg{fill:none;stroke:rgba(0,0,0,.2);stroke-width:3;}
+.cp-fill{fill:none;stroke:#ffd43b;stroke-width:3;stroke-linecap:round;
+  stroke-dasharray:75.4;stroke-dashoffset:0;transition:stroke-dashoffset .07s linear;}
+/* CHICKENS */
+.chicken{position:absolute;font-size:1.5em;z-index:8;
+  animation:chickenBob .5s ease-in-out infinite alternate;cursor:pointer;}
+@keyframes chickenBob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+/* NPCs */
+.npc-walker{position:absolute;display:flex;flex-direction:column;align-items:center;
+  z-index:15;transition:left 1.6s cubic-bezier(.4,0,.6,1);cursor:pointer;}
+.npc-bubble{background:white;border-radius:12px 12px 12px 3px;padding:4px 9px;
+  font-size:.58em;font-weight:800;color:#2b1800;margin-bottom:4px;white-space:nowrap;
+  box-shadow:0 3px 10px rgba(0,0,0,.2);border:1.5px solid #ffe066;}
+.npc-body{font-size:1.8em;animation:chickenBob .55s ease-in-out infinite alternate;}
+/* TRUCKS */
+.truck-el{position:absolute;z-index:20;font-size:2.4em;pointer-events:none;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));}
+.truck-label{position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.72);color:#ffd43b;font-size:.44em;font-weight:800;
+  padding:2px 7px;border-radius:8px;white-space:nowrap;font-family:'Nunito',sans-serif;}
+/* FLOATERS */
+.floater{position:fixed;z-index:60;font-weight:900;font-family:'Fredoka One',cursive;
+  pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,.35);animation:floatUp 1.15s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1);}
+  65%{opacity:1;transform:translateY(-52px) scale(1.18);}100%{opacity:0;transform:translateY(-84px) scale(.75);}}
+.ripple-el{position:fixed;z-index:55;pointer-events:none;border-radius:50%;
+  border:3px solid rgba(255,212,59,.7);animation:rippleOut .55s ease-out forwards;}
+@keyframes rippleOut{from{transform:scale(0);opacity:1}to{transform:scale(3.6);opacity:0}}
+.particle{position:fixed;z-index:55;pointer-events:none;font-size:.95em;
+  animation:pfly .85s ease-out forwards;}
+@keyframes pfly{0%{opacity:1;transform:translate(0,0) scale(1);}
+  100%{opacity:0;transform:var(--tx) scale(.4);}}
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;padding:10px 12px 8px;
+  background:linear-gradient(180deg,rgba(0,0,0,.45),transparent);
+  display:flex;align-items:center;gap:8px;z-index:100;pointer-events:none;}
+.hud-pill{background:rgba(0,0,0,.52);backdrop-filter:blur(6px);
+  border:1.5px solid rgba(255,255,255,.22);border-radius:24px;padding:5px 12px;
+  display:flex;align-items:center;gap:5px;color:white;font-weight:800;font-size:.85em;pointer-events:auto;}
+.hud-pill .val{color:var(--gold);font-size:1.05em;}
+.hud-level{margin-left:auto;background:linear-gradient(135deg,#ffd43b,#f59f00);color:#7a4400;
+  border:none;font-family:'Fredoka One',cursive;font-size:1em;padding:5px 14px;border-radius:20px;
+  box-shadow:0 3px 8px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer;}
+/* BOTTOM BAR */
+#bottomBar{position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(0deg,rgba(0,0,0,.72),rgba(0,0,0,.3));
+  backdrop-filter:blur(8px);padding:10px 8px 14px;display:flex;gap:6px;z-index:100;}
+.action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.22);
+  border-radius:16px;padding:10px 4px 8px;color:white;cursor:pointer;
+  transition:background .15s,transform .1s;position:relative;}
+.action-btn:active{background:rgba(255,255,255,.28);transform:scale(.91);}
+.ab-icon{font-size:1.5em;line-height:1;}
+.ab-label{font-size:.58em;font-weight:800;opacity:.88;text-align:center;}
+.ab-sub{font-size:.56em;font-weight:900;color:var(--gold);background:rgba(0,0,0,.38);
+  border-radius:9px;padding:1px 5px;margin-top:1px;}
+.action-btn.locked{opacity:.38;pointer-events:none;}
+.btn-pulse{border-color:rgba(255,212,59,.7)!important;background:rgba(255,212,59,.16)!important;}
+.ab-dot{position:absolute;top:-4px;right:-3px;width:12px;height:12px;
+  background:#f03e3e;border-radius:50%;border:2px solid rgba(0,0,0,.5);
+  animation:dotpulse 1s infinite;display:none;}
+@keyframes dotpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+/* SHEETS */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;
+  display:flex;align-items:flex-end;animation:bdfade .18s;}
+@keyframes bdfade{from{opacity:0}to{opacity:1}}
+.sheet-body{width:100%;max-height:82vh;overflow-y:auto;
+  background:linear-gradient(180deg,#fffbef,#fff8dc);
+  border-radius:24px 24px 0 0;padding:0 0 20px;
+  box-shadow:0 -8px 40px rgba(0,0,0,.4);
+  animation:sheetup .28s cubic-bezier(.34,1.56,.64,1);}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:12px auto 14px;}
+.sheet-title{font-family:'Fredoka One',cursive;font-size:1.5em;text-align:center;color:#2b2b2b;margin-bottom:14px;}
+.sheet-dark{background:linear-gradient(180deg,#1e1206,#120a02);}
+.sheet-dark .sheet-title{color:#ffd43b;}
+.sheet-dark .sheet-handle{background:rgba(255,255,255,.2);}
+/* TOAST */
+#toast{position:fixed;top:74px;left:50%;transform:translateX(-50%) translateY(-14px);
+  background:rgba(0,0,0,.84);color:white;padding:10px 20px;border-radius:24px;
+  font-weight:700;font-size:.86em;z-index:300;opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;white-space:nowrap;border:1.5px solid rgba(255,212,59,.4);
+  max-width:92vw;text-align:center;overflow:hidden;text-overflow:ellipsis;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* BANNER — bottom, above dock, queued */
+#banner{position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(20px);opacity:0;
+  background:rgba(0,0,0,.78);color:white;padding:9px 18px;border-radius:14px;
+  font-weight:800;font-size:.8em;border:1.5px solid rgba(255,212,59,.4);
+  box-shadow:0 -4px 16px rgba(0,0,0,.4);max-width:86vw;text-align:center;
+  transition:transform .32s cubic-bezier(.34,1.4,.64,1),opacity .25s;
+  pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:150;}
+#banner.show{transform:translateX(-50%) translateY(0);opacity:1;}
+/* XP */
+#xpTrack{position:fixed;top:0;left:0;right:0;height:4px;z-index:101;}
+#xpFill{height:100%;background:linear-gradient(90deg,#ffd43b,#51cf66);transition:width .5s;}
+/* UPGRADE cards */
+.upg-list{padding:0 14px;}
+.upg-card{background:white;border-radius:18px;padding:13px 14px;margin-bottom:10px;
+  border:2px solid #f0e0a0;display:flex;align-items:center;gap:11px;
+  box-shadow:0 3px 12px rgba(0,0,0,.07);transition:border-color .2s;}
+.upg-card.affordable{border-color:#ffd43b;}
+.upg-card.maxed-card{border-color:#51cf66;opacity:.7;}
+.upg-icon-lg{font-size:2.1em;flex-shrink:0;}
+.upg-info{flex:1;min-width:0;}
+.upg-name{font-weight:900;font-size:.92em;color:#2b2b2b;}
+.upg-desc{font-size:.74em;color:#777;margin-top:2px;line-height:1.4;}
+.upg-lvl-dots{display:flex;gap:3px;margin-top:4px;}
+.lvl-dot{width:7px;height:7px;border-radius:50%;background:#e0e0e0;}
+.lvl-dot.on{background:#ffd43b;}
+.upg-btn{flex-shrink:0;background:linear-gradient(135deg,#ffd43b,#f59f00);border:none;border-radius:12px;
+  padding:8px 13px;font-weight:900;font-family:'Nunito',sans-serif;font-size:.8em;color:#7a4400;
+  cursor:pointer;white-space:nowrap;box-shadow:0 3px 8px rgba(245,159,0,.4);transition:transform .1s;}
+.upg-btn:active{transform:scale(.9);}
+.upg-btn:disabled{background:#e8e8e8;color:#aaa;box-shadow:none;cursor:not-allowed;}
+.upg-btn.maxed{background:linear-gradient(135deg,#51cf66,#40c057);color:white;}
+.upg-section-title{font-size:.7em;font-weight:900;color:#b87a20;text-transform:uppercase;
+  letter-spacing:1.5px;padding:12px 14px 4px;opacity:.8;}
+/* MARKET cards */
+.mkt-card{background:white;border-radius:18px;padding:13px 14px;margin:0 14px 10px;
+  border:2px solid #f0e0a0;display:flex;align-items:center;gap:11px;
+  box-shadow:0 3px 12px rgba(0,0,0,.07);}
+.mkt-ava{font-size:2.3em;}
+.mkt-info{flex:1;}
+.mkt-name{font-weight:900;font-size:.92em;color:#2b2b2b;}
+.mkt-detail{font-size:.74em;color:#888;margin-top:2px;}
+.mkt-price{font-size:.8em;font-weight:900;color:#f59f00;margin-top:3px;}
+.mkt-sell{background:linear-gradient(135deg,#51cf66,#40c057);border:none;border-radius:12px;
+  padding:9px 12px;font-weight:900;font-family:'Nunito',sans-serif;font-size:.8em;color:white;
+  cursor:pointer;white-space:nowrap;text-align:center;box-shadow:0 3px 8px rgba(64,192,87,.4);}
+.mkt-sell:active{transform:scale(.9);}
+.mkt-sell:disabled{background:#ccc;color:#aaa;box-shadow:none;}
+/* MINI-GAME panel */
+.mg-card{background:white;border-radius:18px;padding:14px;margin:0 14px 12px;
+  border:2px solid #d0e8ff;box-shadow:0 3px 12px rgba(0,0,0,.07);}
+.mg-card-title{font-weight:900;font-size:.95em;color:#1971c2;margin-bottom:4px;}
+.mg-card-desc{font-size:.76em;color:#666;margin-bottom:10px;line-height:1.4;}
+.mg-play-btn{width:100%;padding:10px;background:linear-gradient(135deg,#74c0fc,#339af0);
+  border:none;border-radius:12px;font-weight:900;font-family:'Nunito',sans-serif;font-size:.88em;
+  color:white;cursor:pointer;box-shadow:0 3px 8px rgba(51,154,240,.4);}
+.mg-play-btn:active{transform:scale(.95);}
+/* ── MINI-GAME OVERLAYS ── */
+.mg-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:bdfade .2s;}
+.mg-title{font-family:'Fredoka One',cursive;font-size:2em;color:white;margin-bottom:6px;text-align:center;}
+.mg-sub{font-size:.85em;color:rgba(255,255,255,.6);margin-bottom:20px;text-align:center;}
+.mg-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);
+  border:none;border-radius:50%;width:36px;height:36px;font-size:1.1em;color:white;cursor:pointer;}
+/* EGG CATCH */
+#catchCanvas{border-radius:16px;max-width:340px;width:90vw;touch-action:none;cursor:none;}
+/* MEMORY GRID */
+.mem-grid{display:grid;gap:8px;padding:10px;}
+.mem-card{border-radius:12px;aspect-ratio:1;background:linear-gradient(135deg,#339af0,#1971c2);
+  display:flex;align-items:center;justify-content:center;font-size:1.8em;cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .15s,background .2s;
+  border:2px solid rgba(255,255,255,.2);}
+.mem-card:active{transform:scale(.93);}
+.mem-card.flipped{background:linear-gradient(135deg,#ffe066,#f59f00);}
+.mem-card.matched{background:linear-gradient(135deg,#51cf66,#2f9e44);pointer-events:none;}
+/* WHACK-A-HEN */
+#whackGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px;}
+.hole{width:80px;height:80px;background:linear-gradient(180deg,#8B5E3C,#6b4226);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:2.2em;cursor:pointer;position:relative;overflow:hidden;
+  box-shadow:inset 0 4px 12px rgba(0,0,0,.4),0 4px 0 rgba(0,0,0,.3);
+  transition:transform .08s;}
+.hole:active{transform:scale(.88);}
+.hole.empty{cursor:default;}
+.hole .hen-in-hole{animation:popUp .18s ease-out;}
+@keyframes popUp{from{transform:translateY(40px)}to{transform:translateY(0)}}
+/* EGG STACKER */
+#stackerArea{position:relative;width:280px;height:320px;overflow:hidden;
+  background:linear-gradient(180deg,#1a0e05,#2a1805);border-radius:16px;touch-action:none;}
+.stacker-platform{position:absolute;height:22px;border-radius:6px;
+  background:linear-gradient(90deg,#e8a84a,#c97a20);
+  box-shadow:0 3px 0 #a06010;transition:left .05s linear;}
+.stacker-egg{position:absolute;font-size:1.5em;text-align:center;}
+.stacker-stack-egg{position:absolute;font-size:1.3em;}
+.stacker-line{position:absolute;left:0;right:0;border-top:2px dashed rgba(255,212,59,.3);}
+/* DAILY CHALLENGE */
+.ch-card{background:white;border-radius:16px;padding:12px 14px;margin:0 14px 10px;
+  border:2px solid #f0e0a0;box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.ch-name{font-weight:900;font-size:.9em;color:#2b2b2b;}
+.ch-bar-track{height:7px;background:#eee;border-radius:4px;margin:6px 0;overflow:hidden;}
+.ch-bar{height:100%;background:linear-gradient(90deg,#51cf66,#ffd43b);border-radius:4px;transition:width .4s;}
+.ch-row{display:flex;justify-content:space-between;font-size:.72em;color:#888;font-weight:700;}
+/* PRESTIGE */
+.prestige-box{background:linear-gradient(135deg,#fff9e6,#ffe8a0);border-radius:18px;
+  padding:16px;margin:0 14px 14px;border:2px solid #ffd43b;}
+/* Black market dark card */
+.bm-deal{background:linear-gradient(135deg,#2a0f52,#1a0840);border-radius:18px;
+  padding:16px;margin:0 14px 14px;border:2px solid rgba(156,54,181,.5);
+  color:white;text-align:center;}
+</style>
+</head>
+<body>
+<div id="xpTrack"><div id="xpFill" style="width:0%"></div></div>
+<div id="gameCanvas"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-pill">💰<span class="val" id="hMoney">$0</span></div>
+  <div class="hud-pill">🥚<span class="val" id="hEggs">0</span>/<span id="hCap">20</span></div>
+  <div class="hud-pill" id="hudRate" style="display:none">⚡<span class="val" id="hRate">0</span>/s</div>
+  <button class="hud-level" onclick="openSheet('level')">⭐Lv<span id="hLvl">1</span></button>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottomBar">
+  <div class="action-btn btn-pulse" id="btnHarvest" onclick="tapHarvest()">
+    <div class="ab-icon">🥚</div><div class="ab-label">Harvest</div>
+    <div class="ab-sub" id="harvestSub">Tap!</div>
+  </div>
+  <div class="action-btn" id="btnMarket" onclick="openSheet('market')">
+    <div class="ab-icon">🛒</div><div class="ab-label">Market</div>
+    <div class="ab-sub" id="marketSub">—</div>
+    <div class="ab-dot" id="marketDot"></div>
+  </div>
+  <div class="action-btn locked" id="btnTruck" onclick="openSheet('trucks')">
+    <div class="ab-icon">🚚</div><div class="ab-label">Trucks</div>
+    <div class="ab-sub" id="truckSub">🔒</div>
+  </div>
+  <div class="action-btn" onclick="openSheet('upgrades')">
+    <div class="ab-icon">⚙️</div><div class="ab-label">Build</div>
+    <div class="ab-sub" id="upgSub">Tap</div>
+    <div class="ab-dot" id="upgDot"></div>
+  </div>
+  <div class="action-btn" onclick="openSheet('games')">
+    <div class="ab-icon">🎮</div><div class="ab-label">Games</div>
+    <div class="ab-sub">Play!</div>
+  </div>
+  <div class="action-btn" onclick="openSheet('more')">
+    <div class="ab-icon">🌟</div><div class="ab-label">More</div>
+    <div class="ab-sub" id="moreSub">—</div>
+    <div class="ab-dot" id="moreDot"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="banner"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const DEF={
+  money:0,eggs:0,siloCap:20,level:1,xp:0,xpNext:100,
+  day:1,gameTick:0,totalEarned:0,totalHarvested:0,totalTaps:0,
+  special:{gold:0,diamond:0,chocolate:0},
+  upgrades:{coop:0,feed:0,silo:0,autoHen:0,polisher:0,hospital:0,magicFeed:0,
+    truckUnlock:0,truckCap:0,truckSpeed:0,truckAuto:0,truck2:0,truck3:0,bigSilo:0,marketSpeed:0},
+  trucks:[{busy:false,eta:0,auto:false},{busy:false,eta:0,auto:false},{busy:false,eta:0,auto:false}],
+  season:0,prestige:0,prestigeMult:1,
+  achievements:[],
+  challenges:{list:[],prog:{},streak:0,lastReset:0},
+  mgScores:{catch:0,memory:0,whack:0,stacker:0},
+  blackMarketUsed:0,
+  recipes:{cracker:0,omelette:0,cake:0,elixir:0},
+};
+let G=JSON.parse(JSON.stringify(DEF));
+try{const s=localStorage.getItem('cflv3');if(s)G=JSON.parse(s);}catch(e){}
+while(G.trucks.length<3)G.trucks.push({busy:false,eta:0,auto:false});
+if(!G.special)G.special={gold:0,diamond:0,chocolate:0};
+if(!G.mgScores)G.mgScores={catch:0,memory:0,whack:0,stacker:0};
+if(!G.challenges)G.challenges={list:[],prog:{},streak:0,lastReset:0};
+if(!G.achievements)G.achievements=[];
+if(!G.recipes)G.recipes={cracker:0,omelette:0,cake:0,elixir:0};
+
+function save(){try{localStorage.setItem('cflv3',JSON.stringify(G));}catch(e){}}
+function hardReset(){if(confirm('Delete entire farm?')){localStorage.removeItem('cflv3');location.reload();}}
+
+const VW=()=>window.innerWidth, VH=()=>window.innerHeight;
+const canvas=document.getElementById('gameCanvas');
+
+// ══════════════════════════════════════════════
+// WORLD BUILD
+// ══════════════════════════════════════════════
+const chickens=[];
+function buildWorld(){
+  const w=VW(),h=VH(),gy=h*.44;
+  canvas.innerHTML='';
+  // Sun
+  const sun=document.createElement('div');sun.className='sun';canvas.appendChild(sun);
+  // Clouds
+  [{t:'10%',w:130,h:36,s:'24s',d:'-7s'},{t:'22%',w:95,h:28,s:'31s',d:'-17s'},{t:'6%',w:160,h:44,s:'19s',d:'-3s'}].forEach(c=>{
+    const el=document.createElement('div');el.className='cloud';
+    el.style.cssText=`top:${c.t};animation-duration:${c.s};animation-delay:${c.d};`;
+    el.innerHTML=`<div style="width:${c.w}px;height:${c.h}px;background:white;border-radius:50px;position:relative;">
+      <div style="position:absolute;width:${Math.round(c.w*.6)}px;height:${Math.round(c.h*1.5)}px;background:white;border-radius:50%;top:${-Math.round(c.h*.7)}px;left:${Math.round(c.w*.18)}px;"></div>
+      <div style="position:absolute;width:${Math.round(c.w*.42)}px;height:${Math.round(c.h*1.2)}px;background:white;border-radius:50%;top:${-Math.round(c.h*.5)}px;left:${Math.round(c.w*.52)}px;"></div>
+    </div>`;
+    canvas.appendChild(el);
+  });
+  // Path
+  const path=document.createElement('div');path.className='ground-path';
+  path.style.cssText=`left:${w*.04}px;right:${w*.04}px;top:${gy+50}px;height:16px;z-index:5;`;
+  canvas.appendChild(path);
+  // Road (if truck unlocked)
+  const road=document.createElement('div');road.className='road-strip';road.id='road';
+  road.style.cssText=`top:${gy+20}px;left:0;right:0;height:26px;display:${G.upgrades.truckUnlock?'block':'none'};`;
+  canvas.appendChild(road);
+  // Fence
+  buildFence(w,gy);
+  // Buildings
+  placeBuildings(w,h,gy);
+  // Chickens
+  spawnChickens(w,gy);
+}
+
+function buildFence(w,gy){
+  const f=document.createElement('div');
+  f.style.cssText=`position:absolute;top:${gy+68}px;left:${w*.04}px;right:${w*.04}px;height:32px;z-index:6;pointer-events:none;`;
+  const count=Math.ceil((w*.92)/28);let html='';
+  for(let i=0;i<count;i++)html+=`<div style="position:absolute;left:${i*28}px;top:0;width:10px;height:32px;background:linear-gradient(180deg,#d49a45,#a07030);border-radius:3px 3px 0 0;"></div>`;
+  html+=`<div style="position:absolute;left:0;right:0;top:8px;height:5px;background:linear-gradient(90deg,#d49a45,#e8b060,#d49a45);border-radius:2px;"></div>`;
+  html+=`<div style="position:absolute;left:0;right:0;top:18px;height:5px;background:linear-gradient(90deg,#d49a45,#e8b060,#d49a45);border-radius:2px;"></div>`;
+  f.innerHTML=html;canvas.appendChild(f);
+}
+
+function mkBld(id,icon,w,h,x,y,bodyClass,bodyStyle,extra,onClick){
+  const el=document.createElement('div');el.className='farm-building';el.id='bld_'+id;
+  el.style.cssText=`left:${x}px;top:${y}px;`;
+  el.innerHTML=`<div class="building-body" style="width:${w}px;height:${h}px;${bodyStyle||''}">${icon}${extra||''}</div><div class="building-label" id="lbl_${id}">${id.charAt(0).toUpperCase()+id.slice(1)}</div>`;
+  if(onClick)el.addEventListener('click',onClick);
+  canvas.appendChild(el);return el;
+}
+
+function placeBuildings(w,h,gy){
+  const mid=w/2;
+  // Coop
+  const coop=mkBld('coop','🐔',88,80,mid-44,gy-72,'','background:linear-gradient(145deg,#e8b85a,#d4952a);',
+    `<div class="coop-progress" id="coopRing"><svg viewBox="0 0 26 26" width="28" height="28"><circle class="cp-bg" cx="13" cy="13" r="12"/><circle class="cp-fill" id="cpFill" cx="13" cy="13" r="12"/></svg></div>
+     <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:22px;height:26px;background:linear-gradient(180deg,#7a4a1a,#5a3010);border-radius:10px 10px 0 0;"></div>`,tapHarvest);
+  // Silo
+  mkBld('silo','🏗️',60,88,mid+58,gy-78,'','background:linear-gradient(160deg,#b8cfe8,#7a9ab8);border-radius:50% 50% 8px 8px / 28% 28% 8px 8px;',
+    `<div style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:34px solid transparent;border-right:34px solid transparent;border-bottom:20px solid #d4a843;"></div><div class="bld-badge" id="siloBadge"></div>`,
+    ()=>showToast(`Silo: ${Math.floor(G.eggs)}/${G.siloCap} (${Math.round(G.eggs/G.siloCap*100)}%)`));
+  // Market
+  mkBld('market','🛒',90,72,w-106,gy-64,'','background:linear-gradient(145deg,#ff8787,#e03131);',
+    `<div style="position:absolute;top:-14px;left:-6px;right:-6px;height:22px;background:linear-gradient(135deg,#ffe066,#ffa94d);border-radius:6px;"></div><div class="bld-badge" id="marketBadge"></div>`,()=>openSheet('market'));
+  // Shop
+  mkBld('shop','⚙️',82,72,14,gy-62,'','background:linear-gradient(145deg,#74c0fc,#339af0);',
+    '',()=>openSheet('upgrades'));
+  // Truck depot
+  const depot=mkBld('depot','🚛',88,68,mid-170,gy-60,'','background:linear-gradient(145deg,#8ce99a,#40c057);',
+    `<div id="depotLock" class="locked-overlay"><span>🔒</span><span>Buy Truck Deal</span></div>`,()=>openSheet('trucks'));
+  if(G.upgrades.truckUnlock)document.getElementById('depotLock').style.display='none';
+  // Mini-game arcade
+  mkBld('arcade','🎮',84,72,mid+140,gy-64,'','background:linear-gradient(145deg,#da77f2,#9c36b5);',
+    `<div class="bld-badge" id="arcadeBadge" style="display:flex">!</div>`,()=>openSheet('games'));
+  // Prestige star
+  mkBld('star','⭐',72,68,mid-80,gy+6,'','background:linear-gradient(145deg,#ffd43b,#f59f00);',
+    '',()=>openSheet('more'));
+}
+
+function spawnChickens(w,gy){
+  chickens.forEach(c=>c.el.remove());chickens.length=0;
+  const count=Math.min(10,2+(G.upgrades.coop||0)*2);
+  const mid=w/2;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');el.className='chicken';el.textContent='🐔';
+    const bx=mid-60+i*26+Math.random()*6;
+    el.style.cssText=`left:${bx}px;top:${gy+4}px;animation-delay:${i*.1}s;`;
+    el.addEventListener('click',tapHarvest);
+    canvas.appendChild(el);
+    chickens.push({el,bx,t:Math.random()*Math.PI*2,sp:.022+Math.random()*.018});
+  }
+}
+setInterval(()=>{chickens.forEach(c=>{c.t+=c.sp;c.el.style.left=(c.bx+Math.sin(c.t)*16)+'px';c.el.style.transform=Math.sin(c.t)>0?'scaleX(1)':'scaleX(-1)';});},60);
+
+// ══════════════════════════════════════════════
+// HARVEST
+// ══════════════════════════════════════════════
+let harvestCD=0,HARVEST_MAX=900;
+function tapHarvest(){
+  if(harvestCD>0){showToast('⏳ Hens need a moment!');return;}
+  if(G.eggs>=G.siloCap){showToast('🏗️ Silo full! Sell eggs first.');return;}
+  const amt=1+Math.floor((G.upgrades.feed||0)*.6);
+  G.eggs=Math.min(G.siloCap,G.eggs+amt);
+  G.totalHarvested+=amt;G.totalTaps++;
+  harvestCD=HARVEST_MAX;
+  trackCh('taps',1);trackCh('harvest',amt);
+  const bld=document.getElementById('bld_coop');
+  if(bld){const r=bld.getBoundingClientRect();
+    spawnFloat(`+${amt}🥚`,r.left+r.width/2,r.top+r.height/2,'#ffd43b','1.2em');
+    spawnRipple(r.left+r.width/2,r.top+r.height/2);burst(r.left+r.width/2,r.top+r.height/2);}
+  gainXP(2);save();updateUI();
+}
+setInterval(()=>{
+  if(harvestCD>0)harvestCD=Math.max(0,harvestCD-50);
+  const pct=harvestCD/HARVEST_MAX;
+  const f=document.getElementById('cpFill');
+  if(f)f.style.strokeDashoffset=75.4*pct;
+  const s=document.getElementById('harvestSub');
+  if(s)s.textContent=harvestCD>0?`${(harvestCD/1000).toFixed(1)}s`:'Ready!';
+  const b=document.getElementById('btnHarvest');
+  if(b)b.classList.toggle('btn-pulse',harvestCD===0);
+},50);
+
+// ══════════════════════════════════════════════
+// AUTO PRODUCTION
+// ══════════════════════════════════════════════
+function getRate(){
+  const sb=getSeasonBonus();
+  return parseFloat((((G.upgrades.coop||0)*(1+(G.upgrades.feed||0)*.5)*(1+(G.upgrades.hospital||0)*.08)+(G.upgrades.autoHen||0))*(sb.prodMult||1)).toFixed(2));
+}
+setInterval(()=>{
+  const r=getRate();
+  if(r>0&&G.eggs<G.siloCap){G.eggs=Math.min(G.siloCap,G.eggs+r);G.totalHarvested+=r;updateUI();}
+},1000);
+
+// ══════════════════════════════════════════════
+// SEASONS
+// ══════════════════════════════════════════════
+const SEASONS=[
+  {name:'🌸 Spring',sky:'linear-gradient(180deg,#a8edea 0%,#b8f0e0 44%,#5db84a 44%,#4aa337 100%)',prodMult:1.25,label:'+25% egg production'},
+  {name:'☀️ Summer',sky:'linear-gradient(180deg,#ffecd2 0%,#fcb69f 44%,#5db84a 44%,#4aa337 100%)',priceMult:1.2,label:'+20% sell prices'},
+  {name:'🍂 Autumn',sky:'linear-gradient(180deg,#d4831a 0%,#e8a030 44%,#8b6a2a 44%,#6a4a1a 100%)',goldMult:3,label:'3× golden egg chance'},
+  {name:'❄️ Winter',sky:'linear-gradient(180deg,#c0ddf5 0%,#e4f0fc 44%,#9ab8d8 44%,#7a98b8 100%)',truckMult:1.5,label:'+50% truck capacity'},
+];
+function getSeasonBonus(){return SEASONS[G.season%4]||SEASONS[0];}
+function applySeason(){
+  const s=getSeasonBonus();
+  canvas.style.background=s.sky;
+}
+
+// ══════════════════════════════════════════════
+// UPGRADES
+// ══════════════════════════════════════════════
+const UPS=[
+  {grp:'🐔 Hens & Production',id:'coop',icon:'🐔',name:'Hen Coop',desc:'Add hens → more auto-production.',base:30,mult:1.6,max:8},
+  {grp:'🐔 Hens & Production',id:'feed',icon:'🌾',name:'Premium Feed',desc:'+harvest per tap & +0.5 rate.',base:45,mult:1.7,max:6},
+  {grp:'🐔 Hens & Production',id:'autoHen',icon:'🤖',name:'Auto-Harvester',desc:'Passive eggs/sec even idle.',base:90,mult:2.0,max:5},
+  {grp:'🐔 Hens & Production',id:'hospital',icon:'🏥',name:'Hen Hospital',desc:'Healthy hens +8% per level.',base:140,mult:2.2,max:4},
+  {grp:'🐔 Hens & Production',id:'magicFeed',icon:'🪄',name:'Magic Feed',desc:'Chance for Golden & Diamond eggs!',base:380,mult:3.5,max:3},
+  {grp:'📦 Storage & Market',id:'silo',icon:'🏗️',name:'Silo Expansion',desc:'+25 egg capacity.',base:50,mult:1.8,max:8},
+  {grp:'📦 Storage & Market',id:'bigSilo',icon:'❄️',name:'Cold Storage',desc:'+50 capacity. Keeps eggs fresh.',base:180,mult:2.5,max:4},
+  {grp:'📦 Storage & Market',id:'polisher',icon:'✨',name:'Egg Polisher',desc:'Sell price +18% per level.',base:100,mult:2.1,max:5},
+  {grp:'📦 Storage & Market',id:'marketSpeed',icon:'🏃',name:'Fast Buyers',desc:'Customers visit more often.',base:80,mult:1.9,max:4},
+  {grp:'🚚 Trucks',id:'truckUnlock',icon:'🔑',name:'Truck Deal',desc:'🔓 Unlock your first truck!',base:200,mult:99,max:1},
+  {grp:'🚚 Trucks',id:'truckCap',icon:'📦',name:'Bigger Trailer',desc:'+20 eggs per trip.',base:100,mult:1.9,max:5,req:'truckUnlock'},
+  {grp:'🚚 Trucks',id:'truckSpeed',icon:'⚡',name:'Turbo Engine',desc:'Cuts trip time by 18%.',base:110,mult:2.0,max:5,req:'truckUnlock'},
+  {grp:'🚚 Trucks',id:'truckAuto',icon:'🔄',name:'Auto-Dispatch',desc:'Trucks auto-send at 80% silo.',base:250,mult:9,max:1,req:'truckUnlock'},
+  {grp:'🚚 Trucks',id:'truck2',icon:'🚛',name:'2nd Truck',desc:'Run two trucks simultaneously!',base:500,mult:9,max:1,req:'truckUnlock'},
+  {grp:'🚚 Trucks',id:'truck3',icon:'🚜',name:'3rd Truck',desc:'Three trucks — egg empire!',base:1200,mult:9,max:1,req:'truck2'},
+];
+function upCost(id){const u=UPS.find(x=>x.id===id);return Math.floor(u.base*Math.pow(u.mult,G.upgrades[id]||0));}
+function priceMult(){const s=getSeasonBonus();return (1+(G.upgrades.polisher||0)*.18)*(s.priceMult||1)*G.prestigeMult;}
+function truckCap(){const s=getSeasonBonus();return Math.floor((20+(G.upgrades.truckCap||0)*20)*(s.truckMult||1));}
+function tripMs(){return Math.max(2500,8000*(1-Math.min(.82,(G.upgrades.truckSpeed||0)*.18)));}
+
+function buyUpgrade(id){
+  const u=UPS.find(x=>x.id===id);if(!u)return;
+  const lvl=G.upgrades[id]||0;
+  if(lvl>=u.max){showToast('Already maxed! ✅');return;}
+  if(u.req&&!(G.upgrades[u.req]>=1)){showToast(`Requires: ${UPS.find(x=>x.id===u.req)?.name}`);return;}
+  const cost=upCost(id);
+  if(G.money<cost){showToast(`Need $${cost.toLocaleString()} 💸`);return;}
+  G.money-=cost;G.upgrades[id]=(G.upgrades[id]||0)+1;
+  gainXP(25+(lvl)*5);
+  if(id==='silo'||id==='bigSilo'){G.siloCap=20+(G.upgrades.silo||0)*25+(G.upgrades.bigSilo||0)*50;}
+  if(id==='truckUnlock'){
+    showBanner('🚚 Truck Unlocked! Check the depot!','#2f9e44');
+    document.getElementById('road').style.display='block';
+    document.getElementById('depotLock').style.display='none';
+    document.getElementById('btnTruck').classList.remove('locked');
+  }
+  if(id==='truck2')showBanner('🚛 2nd Truck slot unlocked!','#1971c2');
+  if(id==='truck3')showBanner('🚜 3rd Truck slot unlocked!','#1971c2');
+  if(id==='coop'){chickens.forEach(c=>c.el.remove());chickens.length=0;spawnChickens(VW(),VH()*.44);}
+  save();updateUI();showToast(`${u.name} → Lv${G.upgrades[id]} ✨`);
+  openSheet('upgrades');
+}
+function recalcSilo(){G.siloCap=20+(G.upgrades.silo||0)*25+(G.upgrades.bigSilo||0)*50;}
+
+// ══════════════════════════════════════════════
+// MARKET & BUYERS
+// ══════════════════════════════════════════════
+const BUYERS=[
+  {e:'👩‍🍳',name:'Home Baker',qty:8,price:2.2,want:'egg'},
+  {e:'🍽️',name:'Restaurant',qty:22,price:3.0,want:'egg'},
+  {e:'🏨',name:'Grand Hotel',qty:40,price:2.7,want:'egg'},
+  {e:'👨‍⚕️',name:'Doctor',qty:12,price:3.8,want:'egg'},
+  {e:'🎂',name:'Cake Shop',qty:18,price:2.9,want:'egg'},
+  {e:'🏪',name:'Corner Store',qty:10,price:2.4,want:'egg'},
+  {e:'🥗',name:'Health Café',qty:16,price:3.5,want:'egg'},
+  {e:'🧑‍🎤',name:'Gourmet Chef',qty:30,price:4.5,want:'egg'},
+  {e:'👑',name:'Royal Chef',qty:1,price:28,want:'gold'},
+  {e:'🏛️',name:'Art Museum',qty:1,price:220,want:'diamond'},
+  {e:'🍫',name:'Choco Factory',qty:3,price:18,want:'chocolate'},
+];
+function sellTo(idx){
+  const b=BUYERS[idx];
+  const have=b.want==='egg'?Math.floor(G.eggs):(G.special[b.want]||0);
+  if(have<=0){showToast('No eggs!');return;}
+  const qty=Math.min(have,b.qty);
+  const earn=Math.floor(qty*b.price*priceMult());
+  G.money+=earn;G.totalEarned+=earn;
+  if(b.want==='egg')G.eggs=Math.max(0,G.eggs-qty);else G.special[b.want]=Math.max(0,(G.special[b.want]||0)-qty);
+  gainXP(Math.floor(earn/4));trackCh('earn',earn);trackCh('sells',1);
+  spawnBuyerNPC(b.e,earn);closeSheet();
+  spawnFloat(`+$${earn}`,VW()-70,VH()*.4,'#51cf66','1.4em');
+  showToast(`${b.e} paid $${earn.toLocaleString()}! 🎉`);
+  save();updateUI();
+}
+
+// Walking order NPCs
+let orderTimer=null;
+function scheduleOrders(){
+  clearTimeout(orderTimer);
+  const freq=Math.max(8,20-(G.upgrades.marketSpeed||0)*3);
+  orderTimer=setTimeout(()=>{spawnOrderNPC();scheduleOrders();},(freq+Math.random()*freq)*1000);
+}
+function spawnOrderNPC(){
+  const b=BUYERS[Math.floor(Math.random()*BUYERS.length)];
+  const have=b.want==='egg'?Math.floor(G.eggs):(G.special[b.want]||0);
+  if(have<=0){scheduleOrders();return;}
+  const idx=BUYERS.indexOf(b);
+  const qty=Math.min(have,b.qty);
+  const earn=Math.floor(qty*b.price*priceMult());
+  const w=VW(),h=VH(),gy=h*.44;
+  const fromRight=Math.random()<.5;
+  const npc=document.createElement('div');npc.className='npc-walker';
+  npc.style.cssText=`left:${fromRight?w+60:-80}px;top:${gy+2}px;`;
+  npc.innerHTML=`<div class="npc-bubble">${b.e} ${b.name} • $${earn}</div><div class="npc-body">${b.e}</div>`;
+  npc.style.pointerEvents='auto';
+  canvas.appendChild(npc);
+  setTimeout(()=>npc.style.left=(w/2-30)+'px',80);
+  const dismiss=(accepted)=>{
+    npc.style.transition='left 1.2s,opacity .35s';
+    npc.style.opacity='0';npc.style.left=(fromRight?w+60:-80)+'px';
+    setTimeout(()=>npc.remove(),1300);
+    if(accepted){
+      const have2=b.want==='egg'?Math.floor(G.eggs):(G.special[b.want]||0);
+      const q2=Math.min(have2,b.qty);const e2=Math.floor(q2*b.price*priceMult());
+      if(q2<=0){showToast('Ran out of eggs!');return;}
+      G.money+=e2;G.totalEarned+=e2;
+      if(b.want==='egg')G.eggs=Math.max(0,G.eggs-q2);else G.special[b.want]=Math.max(0,(G.special[b.want]||0)-q2);
+      gainXP(Math.floor(e2/4));trackCh('earn',e2);trackCh('sells',1);
+      spawnFloat(`+$${e2}`,w/2,gy,'#51cf66','1.5em');burst(w/2,gy);
+      showToast(`${b.e} bought ${q2} eggs → $${e2}! 🎉`);
+      save();updateUI();
+    }
+  };
+  npc.addEventListener('click',()=>dismiss(true));
+  setTimeout(()=>{if(npc.parentNode)dismiss(false);},13000);
+}
+function spawnBuyerNPC(emoji,earn){
+  const w=VW(),h=VH(),gy=h*.44;
+  const npc=document.createElement('div');npc.className='npc-walker';npc.style.pointerEvents='none';
+  npc.style.cssText=`left:${w+60}px;top:${gy+2}px;`;
+  npc.innerHTML=`<div class="npc-bubble">💰 $${earn}</div><div class="npc-body">${emoji}</div>`;
+  canvas.appendChild(npc);
+  setTimeout(()=>npc.style.left=(w/2-20)+'px',80);
+  setTimeout(()=>{npc.style.transform='scaleX(-1)';npc.style.left=(w+60)+'px';},2500);
+  setTimeout(()=>npc.remove(),4000);
+}
+
+// ══════════════════════════════════════════════
+// TRUCKS
+// ══════════════════════════════════════════════
+function getTruckSlots(){let s=0;if(G.upgrades.truckUnlock>=1)s=1;if(G.upgrades.truck2>=1)s=2;if(G.upgrades.truck3>=1)s=3;return s;}
+function sendTruck(i){
+  if(G.upgrades.truckUnlock<1){showToast('🔒 Unlock trucks first!');return;}
+  if(i>=getTruckSlots()){showToast('🔒 Unlock this truck slot first!');return;}
+  const t=G.trucks[i];
+  if(t.busy){showToast('Truck already on the road!');return;}
+  if(G.eggs<5){showToast('Need at least 5 eggs to load!');return;}
+  const cap=truckCap(),load=Math.min(Math.floor(G.eggs),cap);
+  const earn=Math.floor(load*3.4*priceMult());const ms=tripMs();
+  G.eggs=Math.max(0,G.eggs-load);t.busy=true;t.eta=Date.now()+ms;
+  save();updateUI();closeSheet();
+  showToast(`🚚 Truck ${i+1} loaded with ${load} eggs!`);
+  trackCh('trucks',1);
+  animateTruck(i,earn,ms,load);
+}
+function toggleAuto(i){
+  if(G.upgrades.truckAuto<1){showToast('🔒 Buy Auto-Dispatch upgrade!');openSheet('upgrades');return;}
+  G.trucks[i].auto=!G.trucks[i].auto;save();openSheet('trucks');
+}
+function animateTruck(i,earn,ms,load){
+  const w=VW(),h=VH(),gy=h*.44;
+  const emojis=['🚚','🚛','🚜'];
+  const el=document.createElement('div');el.className='truck-el';el.id='truck_'+i;
+  el.style.cssText=`left:${-90}px;top:${gy+18+i*22}px;transition:left ${ms*.44}ms cubic-bezier(.4,0,.8,.6);`;
+  el.innerHTML=`${emojis[i]||'🚚'}<div class="truck-label">📦${load}</div>`;
+  canvas.appendChild(el);
+  setTimeout(()=>el.style.left=(w/2-44)+'px',80);
+  setTimeout(()=>{el.style.transform='scaleX(-1)';el.style.transition=`left ${ms*.44}ms cubic-bezier(.2,0,.6,.8)`;el.style.left=(w+90)+'px';el.querySelector('.truck-label').textContent=`$${earn}`;},ms*.52);
+  setTimeout(()=>{G.money+=earn;G.totalEarned+=earn;G.trucks[i].busy=false;gainXP(load*2);
+    trackCh('earn',earn);showBanner(`🚚 Truck ${i+1} back! +$${earn.toLocaleString()} 💰`,'#2f9e44');
+    if(el.parentNode)el.remove();save();updateUI();},ms+120);
+}
+setInterval(()=>{
+  const slots=getTruckSlots();
+  for(let i=0;i<slots;i++){
+    const t=G.trucks[i];
+    if(!t.busy&&t.auto&&G.upgrades.truckAuto>=1&&G.eggs>=G.siloCap*.8)sendTruck(i);
+  }
+},800);
+
+// ══════════════════════════════════════════════
+// SPECIAL EGGS
+// ══════════════════════════════════════════════
+setInterval(()=>{
+  const mf=G.upgrades.magicFeed||0;
+  if(!mf)return;
+  const sb=getSeasonBonus();
+  if(Math.random()<.025*mf*(sb.goldMult||1)){G.special.gold=(G.special.gold||0)+1;save();updateUI();showBanner('🥇 Golden Egg! Sell at the Market!','#e67700');spawnFloat('🥇',VW()/2,VH()*.4,'#ffd43b','1.6em');}
+  if(mf>=2&&Math.random()<.012*mf){G.special.chocolate=(G.special.chocolate||0)+1;save();updateUI();showBanner('🍫 Chocolate Egg appeared!','#6b4226');}
+  if(mf>=3&&Math.random()<.005){G.special.diamond=(G.special.diamond||0)+1;save();updateUI();showBanner('💎 DIAMOND EGG! Worth $220!','#1971c2');}
+  trackCh('goldEgg',0); // just trigger check
+},6000);
+
+// ══════════════════════════════════════════════
+// XP & LEVELS
+// ══════════════════════════════════════════════
+function gainXP(n){
+  G.xp+=n;
+  while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.level++;G.xpNext=Math.floor(G.xpNext*1.6);
+    showBanner(`⭐ Level ${G.level}! New stuff unlocked!`,'#f59f00');
+    spawnFloat(`⭐ LV${G.level}!`,VW()/2,VH()/2,'#ffd43b','1.7em');checkAchievements();}
+  document.getElementById('xpFill').style.width=(G.xp/G.xpNext*100)+'%';
+}
+
+// ══════════════════════════════════════════════
+// CHALLENGES
+// ══════════════════════════════════════════════
+const CH_POOL=[
+  {id:'h100',desc:'Harvest 100 eggs',target:100,reward:80,type:'harvest'},
+  {id:'earn200',desc:'Earn $200 today',target:200,reward:60,type:'earn'},
+  {id:'sell3',desc:'Sell to 3 buyers',target:3,reward:50,type:'sells'},
+  {id:'truck2x',desc:'Send truck twice',target:2,reward:90,type:'trucks'},
+  {id:'h500',desc:'Harvest 500 eggs',target:500,reward:200,type:'harvest'},
+  {id:'earn1k',desc:'Earn $1,000 today',target:1000,reward:300,type:'earn'},
+  {id:'taps20',desc:'Tap harvest 20×',target:20,reward:40,type:'taps'},
+  {id:'gold1',desc:'Get a Golden Egg',target:1,reward:120,type:'goldEgg'},
+];
+function resetChallenges(){
+  G.challenges.list=CH_POOL.sort(()=>Math.random()-.5).slice(0,3).map(c=>({...c,done:false}));
+  G.challenges.prog={};G.challenges.lastReset=Date.now();save();
+}
+function trackCh(type,amount){
+  if(!G.challenges.prog)G.challenges.prog={};
+  G.challenges.prog[type]=(G.challenges.prog[type]||0)+amount;
+  (G.challenges.list||[]).forEach(c=>{
+    if(c.done||c.type!==type)return;
+    if((G.challenges.prog[type]||0)>=c.target){
+      c.done=true;G.money+=c.reward;
+      showBanner(`✅ Challenge: "${c.desc}" +$${c.reward}`,'#2f9e44');
+      spawnFloat(`🏆+$${c.reward}`,VW()/2,VH()*.4,'#51cf66','1.4em');
+      gainXP(40);save();updateUI();
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+// ACHIEVEMENTS
+// ══════════════════════════════════════════════
+const ACHS=[
+  {id:'egg1',icon:'🥚',name:'First Egg!',check:()=>G.totalHarvested>=1},
+  {id:'$100',icon:'💰',name:'First $100',check:()=>G.totalEarned>=100},
+  {id:'$1k',icon:'💵',name:'Egg Millionaire',check:()=>G.totalEarned>=1000},
+  {id:'$10k',icon:'🤑',name:'Egg Tycoon',check:()=>G.totalEarned>=10000},
+  {id:'truck',icon:'🚚',name:'On the Road',check:()=>G.upgrades.truckUnlock>=1},
+  {id:'prestige',icon:'⭐',name:'New Beginnings',check:()=>G.prestige>=1},
+  {id:'gold',icon:'🥇',name:'Gold Rush',check:()=>(G.special.gold||0)>=3},
+  {id:'diamond',icon:'💎',name:'Diamond Farmer',check:()=>(G.special.diamond||0)>=1},
+  {id:'max_coop',icon:'🐔',name:'Hen Army',check:()=>G.upgrades.coop>=8},
+  {id:'catch50',icon:'🪣',name:'Egg Catcher',check:()=>G.mgScores.catch>=50},
+  {id:'whack30',icon:'🔨',name:'Whack Master',check:()=>G.mgScores.whack>=30},
+  {id:'stack10',icon:'📚',name:'Stacker',check:()=>G.mgScores.stacker>=10},
+  {id:'streak5',icon:'🔥',name:'5-Day Streak',check:()=>(G.challenges.streak||0)>=5},
+];
+function checkAchievements(){
+  ACHS.forEach(a=>{
+    if(G.achievements.includes(a.id))return;
+    if(a.check()){G.achievements.push(a.id);showBanner(`🏅 "${a.name}" ${a.icon}`,'#e67700');gainXP(50);save();}
+  });
+}
+setInterval(checkAchievements,5000);
+
+// ══════════════════════════════════════════════
+// PRESTIGE
+// ══════════════════════════════════════════════
+function canPrestige(){return G.totalEarned>=5000*(G.prestige+1);}
+function doPrestige(){
+  if(!canPrestige()){showToast('Not enough total earnings yet!');return;}
+  G.prestige++;G.prestigeMult=1+G.prestige*.3;
+  const keep={prestige:G.prestige,prestigeMult:G.prestigeMult,challenges:G.challenges,achievements:G.achievements,mgScores:G.mgScores,day:G.day};
+  Object.assign(G,JSON.parse(JSON.stringify(DEF)),keep);
+  recalcSilo();save();
+  showBanner(`🌟 PRESTIGE ${G.prestige}! ×${G.prestigeMult.toFixed(1)} bonus active!`,'#f59f00');
+  setTimeout(()=>location.reload(),1600);
+}
+
+// ══════════════════════════════════════════════
+// EGG RECIPES
+// ══════════════════════════════════════════════
+const RECIPES=[
+  {id:'cracker',icon:'🍘',name:'Egg Crackers',egg:12,value:55},
+  {id:'omelette',icon:'🍳',name:'Omelette',egg:28,value:130},
+  {id:'cake',icon:'🎂',name:'Egg Cake',egg:45,gold:1,value:320},
+  {id:'elixir',icon:'⚗️',name:'Egg Elixir',egg:20,gold:2,diamond:1,value:1100},
+];
+function craftRecipe(id){
+  const r=RECIPES.find(x=>x.id===id);if(!r)return;
+  if(Math.floor(G.eggs)<(r.egg||0)){showToast(`Need ${r.egg} eggs!`);return;}
+  if((G.special.gold||0)<(r.gold||0)){showToast('Need Golden Eggs!');return;}
+  if((G.special.diamond||0)<(r.diamond||0)){showToast('Need Diamond Eggs!');return;}
+  G.eggs-=(r.egg||0);G.special.gold=Math.max(0,(G.special.gold||0)-(r.gold||0));
+  G.special.diamond=Math.max(0,(G.special.diamond||0)-(r.diamond||0));
+  const earn=Math.floor(r.value*G.prestigeMult);G.money+=earn;G.totalEarned+=earn;
+  gainXP(Math.floor(earn/5));trackCh('earn',earn);
+  spawnFloat(`${r.icon}+$${earn}`,VW()/2,VH()*.4,'#ffd43b','1.4em');
+  showToast(`${r.icon} ${r.name} crafted for $${earn}!`);save();updateUI();openSheet('recipes');
+}
+
+// ══════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════
+const EVENTS=[
+  ()=>{G.eggs=Math.min(G.siloCap,G.eggs+10);save();updateUI();showBanner('☀️ Sunny day! +10 bonus eggs!','#e67700');},
+  ()=>{G.eggs=Math.max(0,G.eggs-4);save();updateUI();showBanner('🦊 Fox raided the coop! -4 eggs 😱');},
+  ()=>{G.eggs=Math.min(G.siloCap,G.eggs+8);save();updateUI();showBanner('🌧️ Rain bonus! +8 eggs collected!');},
+  ()=>{spawnOrderNPC();showBanner('📰 Farm on the news! Buyers rushing in!');},
+  ()=>{const b=Math.floor(40+Math.random()*60);G.money+=b;save();updateUI();showBanner(`🎁 Surprise delivery! +$${b} found!`,'#2f9e44');spawnFloat(`+$${b}`,VW()/2,VH()*.4,'#51cf66','1.4em');},
+  ()=>{const b=Math.floor(G.siloCap*.25);G.eggs=Math.min(G.siloCap,G.eggs+b);save();updateUI();showBanner(`🐣 Laying frenzy! +${b} eggs!`,'#e67700');},
+  ()=>{G.special.gold=(G.special.gold||0)+1;save();updateUI();showBanner('🥇 Wild golden egg behind the barn!','#e67700');},
+];
+setInterval(()=>{if(Math.random()<.18)EVENTS[Math.floor(Math.random()*EVENTS.length)]();},24000);
+
+// Day/night
+setInterval(()=>{
+  G.gameTick++;const phase=G.gameTick%240;
+  const w=document.getElementById('gameCanvas');
+  const sb=getSeasonBonus();
+  if(phase>185)w.style.background='linear-gradient(180deg,#0a0820 0%,#1a1640 44%,#2a4a2a 44%,#1a3a1a 100%)';
+  else if(phase>155)w.style.background='linear-gradient(180deg,#e8601c 0%,#f5a445 44%,#4a8a3a 44%,#3a7028 100%)';
+  else w.style.background=sb.sky;
+  if(phase===0){G.day++;G.season=Math.floor((G.day-1)/8)%4;showBanner(`🌅 Day ${G.day} — ${SEASONS[G.season%4].name} Season`);gainXP(12);
+    if(Date.now()-G.challenges.lastReset>90000)resetChallenges();}
+},1000);
+
+// ══════════════════════════════════════════════
+// UI UPDATE
+// ══════════════════════════════════════════════
+function updateUI(){
+  const eggs=Math.floor(G.eggs);
+  document.getElementById('hMoney').textContent='$'+Math.floor(G.money).toLocaleString();
+  document.getElementById('hEggs').textContent=eggs;
+  document.getElementById('hCap').textContent=G.siloCap;
+  document.getElementById('hLvl').textContent=G.level;
+  const r=getRate();
+  if(r>0){document.getElementById('hudRate').style.display='flex';document.getElementById('hRate').textContent=r.toFixed(1);}
+  // Silo bar on silo badge
+  const sb=document.getElementById('siloBadge');if(sb){sb.style.display=eggs>0?'block':'none';sb.textContent=eggs;}
+  // Market
+  document.getElementById('marketSub').textContent=eggs>0?`$${Math.floor(eggs*2.8).toLocaleString()}`:'—';
+  document.getElementById('marketDot').style.display=eggs>0?'block':'none';
+  document.getElementById('marketBadge').style.display=eggs>0?'block':'none';document.getElementById('marketBadge').textContent=eggs;
+  // Trucks
+  if(G.upgrades.truckUnlock){
+    const busy=G.trucks.filter((t,i)=>i<getTruckSlots()&&t.busy).length;
+    document.getElementById('truckSub').textContent=busy>0?`${busy} on road`:`${getTruckSlots()} ready`;
+  }
+  // Upgrades badge
+  const canBuy=UPS.filter(u=>{if(u.req&&!G.upgrades[u.req])return false;const l=G.upgrades[u.id]||0;return l<u.max&&G.money>=upCost(u.id);}).length;
+  document.getElementById('upgDot').style.display=canBuy>0?'block':'none';
+  document.getElementById('upgSub').textContent=canBuy>0?`${canBuy} new!`:'Tap';
+  // Challenges dot
+  const pending=(G.challenges.list||[]).filter(c=>!c.done&&(G.challenges.prog?.[c.type]||0)>=c.target).length;
+  document.getElementById('moreDot').style.display=pending>0?'block':'none';
+  // Harvest sub rate
+  const hs=document.getElementById('harvestSub');if(hs&&harvestCD===0)hs.textContent=r>0?`+${r.toFixed(1)}/s`:'Ready!';
+}
+
+// ══════════════════════════════════════════════
+// VISUAL FX
+// ══════════════════════════════════════════════
+function spawnFloat(text,x,y,color,size){
+  const el=document.createElement('div');el.className='floater';
+  el.textContent=text;el.style.cssText=`left:${x-44}px;top:${y-18}px;color:${color};font-size:${size||'1.2em'};`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1250);
+}
+function spawnRipple(x,y){
+  const el=document.createElement('div');el.className='ripple-el';
+  el.style.cssText=`left:${x-26}px;top:${y-26}px;width:52px;height:52px;`;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),600);
+}
+function burst(x,y){
+  ['🥚','✨','⭐','💛','🌟'].forEach((icon,i)=>{
+    const p=document.createElement('div');p.className='particle';p.textContent=icon;
+    const a=(i/5)*Math.PI*2,d=44+Math.random()*32;
+    p.style.cssText=`left:${x-10}px;top:${y-50}px;--tx:translate(${Math.cos(a)*d}px,${Math.sin(a)*d-48}px);animation-delay:${i*.05}s;`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),900);
+  });
+}
+
+// ══════════════════════════════════════════════
+// BANNER (queued)
+// ══════════════════════════════════════════════
+let bQ=[],bActive=false,bT=null;
+function showBanner(msg,color){bQ.push({msg,color});if(!bActive)drainBanner();}
+function drainBanner(){
+  if(!bQ.length){bActive=false;return;}bActive=true;
+  const {msg,color}=bQ.shift();
+  const el=document.getElementById('banner');
+  el.textContent=msg;el.style.background=color?`${color}cc`:'rgba(0,0,0,.78)';
+  el.style.borderColor=color?'rgba(255,255,255,.3)':'rgba(255,212,59,.4)';
+  el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+  clearTimeout(bT);bT=setTimeout(()=>{el.classList.remove('show');setTimeout(drainBanner,380);},2900);
+}
+let toastT=null;
+function showToast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2700);
+}
+
+// ══════════════════════════════════════════════
+// SHEET SYSTEM
+// ══════════════════════════════════════════════
+let sheetEl=null;
+function showSheet(title,bodyHTML,dark){
+  closeSheet();
+  const bd=document.createElement('div');bd.className='sheet-backdrop';bd.id='sheetBd';
+  bd.innerHTML=`<div class="sheet-body${dark?' sheet-dark':''}">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${title}</div>
+    ${bodyHTML}
+  </div>`;
+  bd.addEventListener('click',e=>{if(e.target===bd)closeSheet();});
+  document.body.appendChild(bd);sheetEl=bd;
+}
+function closeSheet(){if(sheetEl){sheetEl.remove();sheetEl=null;}}
+
+function openSheet(type){
+  if(type==='upgrades') renderUpgrades();
+  else if(type==='market') renderMarket();
+  else if(type==='trucks') renderTrucks();
+  else if(type==='games') renderGames();
+  else if(type==='more') renderMore();
+  else if(type==='level') renderLevel();
+  else if(type==='challenges') renderChallenges();
+  else if(type==='achievements') renderAchievements();
+  else if(type==='prestige') renderPrestige();
+  else if(type==='recipes') renderRecipes();
+  else if(type==='blackmarket') renderBlackMarket();
+}
+
+function renderUpgrades(){
+  const groups={};
+  UPS.forEach(u=>{if(u.req&&!(G.upgrades[u.req]>=1))return;if(!groups[u.grp])groups[u.grp]=[];groups[u.grp].push(u);});
+  let html='';
+  Object.entries(groups).forEach(([grp,items])=>{
+    html+=`<div class="upg-section-title">${grp}</div><div class="upg-list">`;
+    items.forEach(u=>{
+      const lvl=G.upgrades[u.id]||0,maxed=lvl>=u.max,cost=upCost(u.id),can=G.money>=cost&&!maxed;
+      const dots=Array.from({length:u.max},(_,i)=>`<div class="lvl-dot ${i<lvl?'on':''}"></div>`).join('');
+      html+=`<div class="upg-card ${maxed?'maxed-card':can?'affordable':''}">
+        <div class="upg-icon-lg">${u.icon}</div><div class="upg-info">
+        <div class="upg-name">${u.name}</div><div class="upg-desc">${u.desc}</div>
+        <div class="upg-lvl-dots">${dots}</div></div>
+        <button class="upg-btn${maxed?' maxed':''}" ${maxed||!can?'disabled':''} onclick="buyUpgrade('${u.id}')">
+          ${maxed?'✓MAX':'$'+cost.toLocaleString()}</button></div>`;
+    });
+    html+='</div>';
+  });
+  html+=`<div style="text-align:center;padding:12px;"><button onclick="hardReset()" style="background:none;border:1px solid #ddd;padding:6px 16px;border-radius:12px;color:#aaa;font-size:.75em;cursor:pointer;">Reset Farm</button></div>`;
+  showSheet('⚙️ Upgrades',html);
+}
+
+function renderMarket(){
+  let html='<div style="padding:0 0 8px;">';
+  BUYERS.forEach((b,i)=>{
+    const have=b.want==='egg'?Math.floor(G.eggs):(G.special[b.want]||0);
+    const qty=Math.min(have,b.qty),earn=Math.floor(qty*b.price*priceMult());
+    html+=`<div class="mkt-card"><div class="mkt-ava">${b.e}</div><div class="mkt-info">
+      <div class="mkt-name">${b.name}</div>
+      <div class="mkt-detail">Wants ${b.qty} ${b.want==='egg'?'🥚':b.want==='gold'?'🥇':b.want==='diamond'?'💎':'🍫'}</div>
+      <div class="mkt-price">$${b.price.toFixed(2)}/egg × ${qty} = <b>$${earn}</b></div></div>
+      <button class="mkt-sell" ${have<=0?'disabled':''} onclick="sellTo(${i})">${have>0?`Sell<br>$${earn}`:'Empty'}</button>
+    </div>`;
+  });
+  html+=`</div><div style="padding:8px 14px 4px;font-size:.72em;color:#aaa;text-align:center;">🥚×${G.special.gold||0}🥇 ×${G.special.diamond||0}💎 ×${G.special.chocolate||0}🍫</div>`;
+  showSheet('🛒 Egg Market',html);
+}
+
+function renderTrucks(){
+  const slots=getTruckSlots(),cap=truckCap(),ms=(tripMs()/1000).toFixed(1);
+  let html='<div style="padding:14px;">';
+  for(let i=0;i<3;i++){
+    const unlocked=i<slots,t=G.trucks[i];
+    if(!unlocked){
+      const reqId=i===1?'truck2':'truck3';
+      const ru=UPS.find(x=>x.id===reqId);
+      html+=`<div class="upg-card" style="opacity:.5"><div class="upg-icon-lg">🔒</div><div class="upg-info">
+        <div class="upg-name">Truck Slot ${i+1}</div>
+        <div class="upg-desc">Unlock: ${ru?.name} ($${upCost(reqId).toLocaleString()})</div></div>
+        <button class="upg-btn" onclick="closeSheet();openSheet('upgrades')">Unlock</button></div>`;
+      continue;
+    }
+    const eta=t.busy?Math.max(0,Math.ceil((t.eta-Date.now())/1000)):0;
+    const emojis=['🚚','🚛','🚜'],names=['Main Truck','Express Truck','Cargo Truck'];
+    html+=`<div class="upg-card ${t.busy?'affordable':''}">
+      <div class="upg-icon-lg">${emojis[i]}</div><div class="upg-info">
+      <div class="upg-name">${names[i]}</div>
+      <div class="upg-desc">${t.busy?`🟢 On road — back in ${eta}s`:`⚪ Ready — carries ${cap} eggs`}</div>
+      <div style="height:6px;background:#eee;border-radius:3px;margin-top:6px;overflow:hidden;">
+        <div style="height:100%;width:${t.busy?Math.min(100,(1-(t.eta-Date.now())/tripMs())*100):0}%;background:linear-gradient(90deg,#51cf66,#ffd43b);border-radius:3px;transition:width .5s;"></div>
+      </div></div></div>
+    <div style="display:flex;gap:8px;margin:-6px 0 10px;">
+      <button class="upg-btn" style="flex:1;${t.busy||G.eggs<5?'background:#eee;color:#aaa;':''};" ${t.busy||G.eggs<5?'disabled':''} onclick="sendTruck(${i})">${t.busy?'On Road':G.eggs<5?'No Eggs':'Send'}</button>
+      <button class="upg-btn ${t.auto?'maxed':''}" style="flex:1;${!G.upgrades.truckAuto?'opacity:.5':''}" onclick="toggleAuto(${i})">${t.auto?'Auto ✓':'Auto off'}</button>
+    </div>`;
+  }
+  html+=`<div style="background:#f8f8f8;border-radius:12px;padding:10px;margin-top:4px;font-size:.78em;color:#666;line-height:1.7;">
+    📦 Capacity: <b style="color:#f59f00">${cap}/trip</b>  ⏱ Trip: <b style="color:#f59f00">${ms}s</b><br>
+    Premium truck price: <b style="color:#f59f00">$${(3.4*priceMult()).toFixed(2)}/egg</b></div>
+  <div style="padding-top:8px;"><button class="mg-play-btn" onclick="closeSheet();openSheet('upgrades')">⚡ Upgrade Trucks</button></div></div>`;
+  showSheet('🚚 Truck Fleet',html);
+}
+
+function renderGames(){
+  const html=`<div style="padding:8px 0;">
+  <div class="mg-card"><div class="mg-card-title">🪣 Egg Catch</div>
+    <div class="mg-card-desc">Catch falling eggs with your basket! Miss 3 and it's over. Beat your high score: <b>${G.mgScores.catch}</b> eggs.</div>
+    <button class="mg-play-btn" onclick="closeSheet();startEggCatch()">Play Now</button></div>
+  <div class="mg-card"><div class="mg-card-title">🧠 Egg Memory</div>
+    <div class="mg-card-desc">Flip cards to match egg pairs. Faster = higher reward. Best: <b>${G.mgScores.memory}</b> matches.</div>
+    <button class="mg-play-btn" onclick="closeSheet();startMemory()">Play Now</button></div>
+  <div class="mg-card"><div class="mg-card-title">🔨 Whack-a-Hen</div>
+    <div class="mg-card-desc">Tap hens before they hide! Each whack = coins. Best: <b>${G.mgScores.whack}</b> whacks.</div>
+    <button class="mg-play-btn" onclick="closeSheet();startWhack()">Play Now</button></div>
+  <div class="mg-card"><div class="mg-card-title">📚 Egg Stacker</div>
+    <div class="mg-card-desc">Tap to drop eggs onto the platform. Stack them high! Best: <b>${G.mgScores.stacker}</b> layers.</div>
+    <button class="mg-play-btn" onclick="closeSheet();startStacker()">Play Now</button></div>
+  </div>`;
+  showSheet('🎮 Mini-Games',html);
+}
+
+function renderMore(){
+  const streak=G.challenges.streak||0;
+  const doneChs=(G.challenges.list||[]).filter(c=>c.done).length;
+  const totalChs=(G.challenges.list||[]).length;
+  const html=`<div style="padding:0 14px 14px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <div onclick="closeSheet();openSheet('challenges')" style="background:white;border-radius:16px;padding:14px;border:2px solid ${doneChs<totalChs?'#ffd43b':'#51cf66'};cursor:pointer;text-align:center;">
+      <div style="font-size:1.8em;">🏆</div><div style="font-weight:900;font-size:.9em;color:#2b2b2b;margin-top:4px;">Challenges</div>
+      <div style="font-size:.74em;color:#aaa;">${doneChs}/${totalChs} done</div>
+      <div style="font-size:.7em;color:#f59f00;margin-top:2px;">🔥 ${streak} day streak</div></div>
+    <div onclick="closeSheet();openSheet('achievements')" style="background:white;border-radius:16px;padding:14px;border:2px solid #e0d0ff;cursor:pointer;text-align:center;">
+      <div style="font-size:1.8em;">🏅</div><div style="font-weight:900;font-size:.9em;color:#2b2b2b;margin-top:4px;">Achievements</div>
+      <div style="font-size:.74em;color:#aaa;">${G.achievements.length}/${ACHS.length} unlocked</div></div>
+    <div onclick="closeSheet();openSheet('recipes')" style="background:white;border-radius:16px;padding:14px;border:2px solid #ffd0a0;cursor:pointer;text-align:center;">
+      <div style="font-size:1.8em;">🍳</div><div style="font-weight:900;font-size:.9em;color:#2b2b2b;margin-top:4px;">Recipes</div>
+      <div style="font-size:.74em;color:#aaa;">Craft for profit</div></div>
+    <div onclick="closeSheet();openSheet('prestige')" style="background:white;border-radius:16px;padding:14px;border:2px solid #ffe066;cursor:pointer;text-align:center;">
+      <div style="font-size:1.8em;">🌟</div><div style="font-weight:900;font-size:.9em;color:#2b2b2b;margin-top:4px;">Prestige</div>
+      <div style="font-size:.74em;color:#aaa;">Lv ${G.prestige} • ×${G.prestigeMult.toFixed(1)}</div>
+      ${canPrestige()?'<div style="font-size:.7em;color:#2f9e44;font-weight:800;">⭐ Ready!</div>':''}</div>
+  </div>
+  <div style="background:#f8f0e0;border-radius:14px;padding:12px;text-align:center;">
+    <div style="font-size:.8em;font-weight:800;color:#7a4400;">🌱 ${SEASONS[G.season%4].name} Season</div>
+    <div style="font-size:.72em;color:#a06020;margin-top:3px;">${SEASONS[G.season%4].label}</div>
+    <div style="font-size:.7em;color:#aaa;margin-top:3px;">Day ${G.day} • Total earned: $${Math.floor(G.totalEarned).toLocaleString()}</div>
+  </div></div>`;
+  showSheet('🌟 More',html);
+}
+
+function renderLevel(){
+  const html=`<div style="padding:14px;text-align:center;">
+    <div style="font-size:3em;margin-bottom:8px;">⭐</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.5em;color:#2b2b2b;">Level ${G.level}</div>
+    <div style="background:#eee;border-radius:8px;height:10px;margin:12px 0;overflow:hidden;">
+      <div style="height:100%;width:${G.xp/G.xpNext*100}%;background:linear-gradient(90deg,#ffd43b,#51cf66);border-radius:8px;transition:width .5s;"></div>
+    </div>
+    <div style="font-size:.8em;color:#888;margin-bottom:16px;">${G.xp} / ${G.xpNext} XP to next level</div>
+    <div style="background:#fff8e6;border-radius:14px;padding:12px;text-align:left;font-size:.78em;color:#555;line-height:1.7;">
+      🏆 Total Earned: <b>$${Math.floor(G.totalEarned).toLocaleString()}</b><br>
+      🥚 Total Harvested: <b>${Math.floor(G.totalHarvested).toLocaleString()}</b><br>
+      📅 Farm Day: <b>${G.day}</b><br>
+      🌟 Prestige: <b>Lv ${G.prestige} (×${G.prestigeMult.toFixed(1)})</b><br>
+      🏅 Achievements: <b>${G.achievements.length}/${ACHS.length}</b>
+    </div></div>`;
+  showSheet('⭐ Farm Stats',html);
+}
+
+function renderChallenges(){
+  if(!G.challenges.list?.length)resetChallenges();
+  let html=`<div style="padding:0 0 8px;"><div style="text-align:center;padding:8px 14px 14px;">
+    <div style="font-size:.85em;font-weight:800;color:#f59f00;">🔥 ${G.challenges.streak} day streak</div>
+    <div style="font-size:.72em;color:#aaa;margin-top:2px;">Complete all 3 for streak bonus!</div></div>`;
+  (G.challenges.list||[]).forEach(c=>{
+    const prog=G.challenges.prog?.[c.type]||0,pct=Math.min(100,(prog/c.target)*100);
+    html+=`<div class="ch-card" style="${c.done?'opacity:.6':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="ch-name">${c.done?'✅ ':''} ${c.desc}</div>
+        <div style="font-size:.78em;font-weight:900;color:#f59f00;">+$${c.reward}</div>
+      </div>
+      <div class="ch-bar-track"><div class="ch-bar" style="width:${pct}%"></div></div>
+      <div class="ch-row"><span>${Math.min(Math.floor(prog),c.target)} / ${c.target}</span><span>${c.done?'Complete!':pct.toFixed(0)+'%'}</span></div>
+    </div>`;
+  });
+  html+=`</div>`;
+  showSheet('🏆 Daily Challenges',html);
+}
+
+function renderAchievements(){
+  let html=`<div style="padding:8px 14px;">`;
+  ACHS.forEach(a=>{
+    const done=G.achievements.includes(a.id);
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${done?'white':'#fafafa'};border:1.5px solid ${done?'#ffd43b':'#eee'};border-radius:14px;margin-bottom:8px;opacity:${done?1:.5};">
+      <div style="font-size:1.8em;">${a.icon}</div>
+      <div><div style="font-weight:900;font-size:.9em;color:#2b2b2b;">${a.name}</div>
+      <div style="font-size:.72em;color:${done?'#f59f00':'#aaa'};">${done?'✅ Unlocked':'🔒 Locked'}</div></div>
+    </div>`;
+  });
+  html+=`<div style="text-align:center;font-size:.75em;color:#aaa;padding:6px;">${G.achievements.length}/${ACHS.length} unlocked</div></div>`;
+  showSheet('🏅 Achievements',html);
+}
+
+function renderPrestige(){
+  const can=canPrestige(),next=5000*(G.prestige+1),newM=(1+(G.prestige+1)*.3).toFixed(1);
+  showSheet('🌟 Prestige',`<div style="padding:14px;text-align:center;">
+    <div style="font-size:3em;margin-bottom:8px;">🌟</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.4em;color:#2b2b2b;margin-bottom:6px;">Prestige ${G.prestige>0?'Lv '+G.prestige:''}</div>
+    <div style="font-size:.82em;color:#666;line-height:1.7;margin-bottom:16px;">Reset your farm for a <b>permanent income multiplier</b>.<br>Keep your prestige level & achievements forever.</div>
+    <div style="background:#fff8e6;border-radius:14px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:.85em;color:#2b2b2b;font-weight:800;margin-bottom:6px;">Next Reward</div>
+      <div style="font-size:1.4em;font-weight:900;color:#f59f00;">×${newM} all earnings</div>
+      <div style="font-size:.74em;color:#aaa;margin-top:4px;">Requires $${next.toLocaleString()} total earned</div>
+      <div style="font-size:.78em;font-weight:800;margin-top:6px;color:${can?'#2f9e44':'#f03e3e'};">
+        ${can?'✅ You qualify!':'Need $'+(next-G.totalEarned).toLocaleString()+' more'}</div>
+    </div>
+    <button onclick="doPrestige()" style="width:100%;padding:13px;background:${can?'linear-gradient(135deg,#ffd43b,#f59f00)':'#eee'};border:none;border-radius:14px;font-weight:900;font-size:.95em;color:${can?'#7a4400':'#aaa'};font-family:'Nunito',sans-serif;cursor:${can?'pointer':'not-allowed'};">
+      ${can?`🌟 Prestige Now! (×${newM})`:'Not enough yet'}</button>
+    <div style="font-size:.7em;color:#aaa;margin-top:10px;">Current: ×${G.prestigeMult.toFixed(1)}</div>
+  </div>`);
+}
+
+function renderRecipes(){
+  let html='<div style="padding:8px 14px;">';
+  html+=`<div style="font-size:.78em;color:#888;text-align:center;margin-bottom:12px;line-height:1.5;">Craft recipes from eggs for higher prices than the market!</div>`;
+  RECIPES.forEach(r=>{
+    const canCraft=Math.floor(G.eggs)>=(r.egg||0)&&(G.special.gold||0)>=(r.gold||0)&&(G.special.diamond||0)>=(r.diamond||0);
+    const cost=[r.egg&&`${r.egg}🥚`,r.gold&&`${r.gold}🥇`,r.diamond&&`${r.diamond}💎`].filter(Boolean).join('+');
+    const earn=Math.floor(r.value*G.prestigeMult);
+    html+=`<div class="upg-card ${canCraft?'affordable':''}"><div class="upg-icon-lg">${r.icon}</div>
+      <div class="upg-info"><div class="upg-name">${r.name}</div>
+      <div class="upg-desc">Cost: ${cost}</div></div>
+      <button class="upg-btn" ${canCraft?'':'disabled'} onclick="craftRecipe('${r.id}')">$${earn.toLocaleString()}</button>
+    </div>`;
+  });
+  html+=`</div>`;
+  showSheet('🍳 Egg Recipes',html);
+}
+
+function renderBlackMarket(){
+  if(!window._bmDeal)return;
+  const d=window._bmDeal;
+  showSheet('🕵️ Black Market',`<div style="padding:16px;text-align:center;">
+    <div style="font-size:3em;margin-bottom:8px;">🕵️</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:1.3em;color:#9c36b5;margin-bottom:10px;">Shady Stranger</div>
+    <div style="background:#f8e6ff;border:1.5px solid #d0a0f0;border-radius:14px;padding:14px;margin-bottom:14px;color:#4a1a7a;font-size:.9em;line-height:1.6;">"${d.desc}"</div>
+    <button onclick="acceptBM()" style="width:100%;padding:12px;background:linear-gradient(135deg,#9c36b5,#6a1e8a);border:none;border-radius:14px;font-weight:900;font-size:.95em;color:white;font-family:'Nunito',sans-serif;cursor:pointer;">✅ Accept Deal</button>
+  </div>`);
+}
+
+// ══════════════════════════════════════════════
+// BLACK MARKET
+// ══════════════════════════════════════════════
+const BM_DEALS=[
+  {desc:'50 eggs hidden in a crate — just for you.',action:()=>{G.eggs=Math.min(G.siloCap,G.eggs+50);showBanner('📦 +50 eggs from crate!','#9c36b5');}},
+  {desc:'Stolen truck parts. Free Turbo Engine upgrade!',action:()=>{G.upgrades.truckSpeed=Math.min(5,(G.upgrades.truckSpeed||0)+1);showBanner('⚡ Free truck speed upgrade!','#9c36b5');}},
+  {desc:'Mystery briefcase. Your money... doubles.',action:()=>{G.money=G.money*2;showBanner('💰 Money doubled!','#9c36b5');}},
+  {desc:'Dodgy Magic Feed. Upgrade added free.',action:()=>{G.upgrades.magicFeed=Math.min(3,(G.upgrades.magicFeed||0)+1);showBanner('🪄 Free Magic Feed upgrade!','#9c36b5');}},
+  {desc:'20 eggs, $9 each. Cash only. No questions.',action:()=>{const q=Math.min(Math.floor(G.eggs),20);if(q===0){showToast('No eggs!');return;}const e=q*9;G.money+=e;G.eggs-=q;showBanner(`🤑 $${e} from street deal!`,'#9c36b5');}},
+];
+function maybeBlackMarket(){
+  if(window._bmActive||G.level<4)return;
+  if(Math.random()<.1){
+    window._bmActive=true;window._bmDeal=BM_DEALS[Math.floor(Math.random()*BM_DEALS.length)];
+    spawnBMNpc();
+  }
+}
+function spawnBMNpc(){
+  const w=VW(),h=VH(),gy=h*.44;
+  const el=document.createElement('div');el.className='npc-walker';el.id='bmNpc';
+  el.style.cssText=`left:${w+60}px;top:${gy+2}px;z-index:18;`;
+  el.innerHTML=`<div class="npc-bubble" style="background:linear-gradient(135deg,#f8e6ff,#efe0ff);border-color:#d0a0f0;color:#4a1a7a;">🕵️ Shady Deal!</div><div class="npc-body">🕵️</div>`;
+  el.addEventListener('click',()=>{closeSheet();openSheet('blackmarket');});
+  canvas.appendChild(el);
+  setTimeout(()=>el.style.left=(VW()*.12)+'px',80);
+  setTimeout(()=>{if(el.parentNode){el.style.transition='left 1.4s,opacity .5s';el.style.opacity='0';el.style.left=(w+60)+'px';setTimeout(()=>{el.remove();window._bmActive=false;},1500);}},18000);
+}
+function acceptBM(){
+  if(!window._bmDeal)return;
+  window._bmDeal.action();window._bmDeal=null;window._bmActive=false;
+  const el=document.getElementById('bmNpc');
+  if(el){el.style.transition='left 1s,opacity .4s';el.style.opacity='0';el.style.left=(VW()+60)+'px';setTimeout(()=>el.remove(),1100);}
+  gainXP(30);save();updateUI();closeSheet();
+}
+setInterval(maybeBlackMarket,30000);
+
+// ══════════════════════════════════════════════
+// ╔══════════════════════════════════════════╗
+// ║          MINI-GAME 1: EGG CATCH          ║
+// ╚══════════════════════════════════════════╝
+// ══════════════════════════════════════════════
+function startEggCatch(){
+  const ov=document.createElement('div');ov.className='mg-overlay';ov.id='mgOv';
+  ov.innerHTML=`<button class="mg-close" onclick="endMiniGame(0)">✕</button>
+    <div class="mg-title">🪣 Egg Catch</div>
+    <div class="mg-sub" id="catchInfo">Score: 0 | Lives: ❤️❤️❤️</div>
+    <canvas id="catchCanvas" width="320" height="380"></canvas>`;
+  document.body.appendChild(ov);
+  const cvs=document.getElementById('catchCanvas');
+  const ctx=cvs.getContext('2d');
+  const W=320,H=380;
+  let basket={x:W/2-30,w:60,h:18};
+  let eggs=[],score=0,lives=3,speed=2.2,spawnRate=90,tick=0,gameOver=false;
+  let dragging=false,dragOff=0;
+
+  cvs.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;dragOff=e.touches[0].clientX-cvs.getBoundingClientRect().left-basket.x-basket.w/2;},{passive:false});
+  cvs.addEventListener('touchmove',e=>{e.preventDefault();if(!dragging)return;basket.x=Math.max(0,Math.min(W-basket.w,e.touches[0].clientX-cvs.getBoundingClientRect().left-basket.w/2-dragOff));},{passive:false});
+  cvs.addEventListener('touchend',()=>dragging=false);
+  cvs.addEventListener('mousemove',e=>{basket.x=Math.max(0,Math.min(W-basket.w,e.clientX-cvs.getBoundingClientRect().left-basket.w/2));});
+
+  const EGG_TYPES=[{emoji:'🥚',val:1,prob:.7},{emoji:'🥇',val:5,prob:.15},{emoji:'💥',val:-1,prob:.1},{emoji:'🍫',val:3,prob:.05}];
+  function spawnEgg(){
+    const r=Math.random(),cum=[0];EGG_TYPES.forEach(e=>cum.push(cum[cum.length-1]+e.prob));
+    let type=EGG_TYPES[0];
+    for(let i=0;i<EGG_TYPES.length;i++){if(r>=cum[i]&&r<cum[i+1]){type=EGG_TYPES[i];break;}}
+    eggs.push({x:Math.random()*(W-20)+10,y:-20,vy:speed+(score/30)*.3,type});
+  }
+
+  function loop(){
+    if(gameOver)return;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#1a0e05';ctx.fillRect(0,0,W,H);
+    // Stars bg
+    ctx.fillStyle='rgba(255,255,255,.3)';
+    for(let i=0;i<20;i++)ctx.fillRect((i*47+tick*.2)%W,(i*31+tick*.1)%H*.5,2,2);
+    tick++;
+    if(tick%Math.max(20,spawnRate-score*2)===0)spawnEgg();
+    speed=2.2+score*.05;
+    // Draw basket
+    ctx.fillStyle='#c97a20';ctx.beginPath();ctx.roundRect(basket.x,H-basket.h-10,basket.w,basket.h,6);ctx.fill();
+    ctx.fillStyle='#e8a840';ctx.fillRect(basket.x+4,H-basket.h-8,basket.w-8,4);
+    // Eggs
+    const toRemove=[];
+    eggs.forEach((egg,i)=>{
+      egg.y+=egg.vy;
+      ctx.font='22px serif';ctx.textAlign='center';ctx.fillText(egg.type.emoji,egg.x,egg.y);
+      if(egg.y>H-basket.h-6&&egg.y<H-4&&egg.x>basket.x&&egg.x<basket.x+basket.w){
+        if(egg.type.val>0){score+=egg.type.val;
+          if(egg.type.val>1){spawnFloat('+'+egg.type.val+'🥚',cvs.getBoundingClientRect().left+egg.x,cvs.getBoundingClientRect().top+H-40,'#ffd43b','1em');}
+        } else {lives--;burst(cvs.getBoundingClientRect().left+egg.x,cvs.getBoundingClientRect().top+H-40);}
+        toRemove.push(i);
+      } else if(egg.y>H+20){
+        if(egg.type.val>0)lives--;
+        toRemove.push(i);
+      }
+    });
+    toRemove.reverse().forEach(i=>eggs.splice(i,1));
+    document.getElementById('catchInfo').textContent=`Score: ${score} | ${'❤️'.repeat(Math.max(0,lives))}`;
+    if(lives<=0){gameOver=true;endCatch(score);return;}
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  function endCatch(s){
+    const earn=s*3;G.money+=earn;G.totalEarned+=earn;
+    if(s>G.mgScores.catch)G.mgScores.catch=s;
+    gainXP(s*2);save();updateUI();
+    const ov=document.getElementById('mgOv');
+    if(ov)ov.innerHTML=`<div class="mg-title">Game Over!</div>
+      <div style="color:white;font-size:1.1em;margin:10px 0;">Score: ${s} eggs<br><span style="color:#ffd43b;font-size:1.2em">+$${earn}</span></div>
+      <button onclick="endMiniGame(0);startEggCatch()" style="padding:12px 28px;background:linear-gradient(135deg,#ffd43b,#f59f00);border:none;border-radius:14px;font-weight:900;font-size:1em;color:#7a4400;cursor:pointer;margin:8px;">Play Again</button>
+      <button onclick="endMiniGame(0)" style="padding:12px 28px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;font-weight:900;font-size:1em;color:white;cursor:pointer;">Done</button>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// MINI-GAME 2: MEMORY MATCH
+// ══════════════════════════════════════════════
+function startMemory(){
+  const emojis=['🥚','🥇','🐔','🚚','🌾','🏗️','🍳','🐣'];
+  const pairs=[...emojis,...emojis].sort(()=>Math.random()-.5);
+  let flipped=[],matched=[],moves=0,startT=Date.now();
+  const ov=document.createElement('div');ov.className='mg-overlay';ov.id='mgOv';
+  ov.innerHTML=`<button class="mg-close" onclick="endMiniGame(0)">✕</button>
+    <div class="mg-title">🧠 Egg Memory</div>
+    <div class="mg-sub" id="memInfo">Moves: 0 | Matched: 0/8</div>
+    <div class="mem-grid" style="grid-template-columns:repeat(4,1fr);width:min(340px,90vw);" id="memGrid"></div>`;
+  document.body.appendChild(ov);
+  const grid=document.getElementById('memGrid');
+
+  function render(){
+    grid.innerHTML='';
+    pairs.forEach((emoji,i)=>{
+      const card=document.createElement('div');card.className='mem-card';
+      const isFlipped=flipped.includes(i)||matched.includes(i);
+      const isMatched=matched.includes(i);
+      if(isMatched)card.classList.add('matched');
+      if(isFlipped&&!isMatched)card.classList.add('flipped');
+      card.textContent=isFlipped?emoji:'';
+      card.addEventListener('click',()=>{
+        if(flipped.length===2||flipped.includes(i)||matched.includes(i))return;
+        flipped.push(i);moves++;
+        document.getElementById('memInfo').textContent=`Moves: ${moves} | Matched: ${matched.length/2}/8`;
+        render();
+        if(flipped.length===2){
+          const [a,b]=flipped;
+          if(pairs[a]===pairs[b]){matched.push(a,b);flipped=[];
+            if(matched.length===16){
+              const t=((Date.now()-startT)/1000).toFixed(1);
+              const earn=Math.max(50,300-moves*10);
+              G.money+=earn;G.totalEarned+=earn;
+              if(matched.length/2>G.mgScores.memory)G.mgScores.memory=matched.length/2;
+              gainXP(earn/3);save();updateUI();
+              const ov=document.getElementById('mgOv');
+              if(ov)ov.innerHTML=`<div class="mg-title">🎉 Perfect!</div>
+                <div style="color:white;font-size:1em;margin:10px 0;">${moves} moves in ${t}s<br><span style="color:#ffd43b;font-size:1.3em">+$${earn}</span></div>
+                <button onclick="endMiniGame(0);startMemory()" style="padding:12px 28px;background:linear-gradient(135deg,#ffd43b,#f59f00);border:none;border-radius:14px;font-weight:900;font-size:1em;color:#7a4400;cursor:pointer;margin:8px;">Play Again</button>
+                <button onclick="endMiniGame(0)" style="padding:12px 28px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;font-weight:900;font-size:1em;color:white;cursor:pointer;">Done</button>`;
+            }
+          } else {setTimeout(()=>{flipped=[];render();},900);}
+        }
+        render();
+      });
+      grid.appendChild(card);
+    });
+  }
+  render();
+}
+
+// ══════════════════════════════════════════════
+// MINI-GAME 3: WHACK-A-HEN
+// ══════════════════════════════════════════════
+function startWhack(){
+  let score=0,timeLeft=30,activeHole=-1,timer=null,countdownTimer=null;
+  const ov=document.createElement('div');ov.className='mg-overlay';ov.id='mgOv';
+  ov.innerHTML=`<button class="mg-close" onclick="clearInterval(window._whackT);clearInterval(window._whackC);endMiniGame(0)">✕</button>
+    <div class="mg-title">🔨 Whack-a-Hen!</div>
+    <div class="mg-sub" id="whackInfo">Score: 0 | ⏱ 30s</div>
+    <div id="whackGrid"></div>`;
+  document.body.appendChild(ov);
+  const grid=document.getElementById('whackGrid');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:10px;';
+
+  function renderHoles(){
+    grid.innerHTML='';
+    for(let i=0;i<9;i++){
+      const hole=document.createElement('div');hole.className='hole';
+      if(i===activeHole){hole.textContent='🐔';hole.classList.remove('empty');}
+      else{hole.textContent='';hole.classList.add('empty');}
+      hole.addEventListener('click',()=>{
+        if(i===activeHole){score++;activeHole=-1;
+          spawnFloat('+1🥚',hole.getBoundingClientRect().left+40,hole.getBoundingClientRect().top,'#ffd43b','1.1em');
+          document.getElementById('whackInfo').textContent=`Score: ${score} | ⏱ ${timeLeft}s`;
+          renderHoles();}
+      });
+      grid.appendChild(hole);
+    }
+  }
+  renderHoles();
+
+  window._whackT=setInterval(()=>{
+    activeHole=Math.floor(Math.random()*9);renderHoles();
+    setTimeout(()=>{activeHole=-1;renderHoles();},700+Math.max(0,(30-timeLeft)*20));
+  },Math.max(400,900-(30-timeLeft)*20));
+
+  window._whackC=setInterval(()=>{
+    timeLeft--;document.getElementById('whackInfo').textContent=`Score: ${score} | ⏱ ${timeLeft}s`;
+    if(timeLeft<=0){
+      clearInterval(window._whackT);clearInterval(window._whackC);
+      const earn=score*4;G.money+=earn;G.totalEarned+=earn;
+      if(score>G.mgScores.whack)G.mgScores.whack=score;
+      gainXP(score*3);save();updateUI();
+      const ov=document.getElementById('mgOv');
+      if(ov)ov.innerHTML=`<div class="mg-title">Time's Up!</div>
+        <div style="color:white;font-size:1.1em;margin:10px 0;">${score} whacks!<br><span style="color:#ffd43b;font-size:1.3em">+$${earn}</span></div>
+        <button onclick="endMiniGame(0);startWhack()" style="padding:12px 28px;background:linear-gradient(135deg,#ffd43b,#f59f00);border:none;border-radius:14px;font-weight:900;font-size:1em;color:#7a4400;cursor:pointer;margin:8px;">Play Again</button>
+        <button onclick="endMiniGame(0)" style="padding:12px 28px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;font-weight:900;font-size:1em;color:white;cursor:pointer;">Done</button>`;
+    }
+  },1000);
+}
+
+// ══════════════════════════════════════════════
+// MINI-GAME 4: EGG STACKER
+// ══════════════════════════════════════════════
+function startStacker(){
+  let layers=0,platformX=20,platformW=100,direction=1,speed=2.8,stackX=20,stackW=100,gameOver=false;
+  const ov=document.createElement('div');ov.className='mg-overlay';ov.id='mgOv';
+  ov.innerHTML=`<button class="mg-close" onclick="cancelAnimationFrame(window._stackRAF);endMiniGame(0)">✕</button>
+    <div class="mg-title">📚 Egg Stacker</div>
+    <div class="mg-sub" id="stackInfo">Tap to stack! Layer: 0</div>
+    <div id="stackerArea" style="position:relative;width:280px;height:320px;overflow:hidden;background:linear-gradient(180deg,#0d1b2a,#1a3a1a);border-radius:16px;touch-action:none;cursor:pointer;"></div>`;
+  document.body.appendChild(ov);
+  const area=document.getElementById('stackerArea');
+  const W=280,H=320;
+  const stack=[];
+  const LAYER_H=22;
+
+  function draw(){
+    area.innerHTML='';
+    // Stack layers
+    stack.forEach((s,i)=>{
+      const div=document.createElement('div');
+      div.style.cssText=`position:absolute;left:${s.x}px;top:${H-LAYER_H*(i+1)-10}px;width:${s.w}px;height:${LAYER_H}px;background:linear-gradient(90deg,#e8a84a,#c97a20);border-radius:5px;box-shadow:0 3px 0 #a06010;display:flex;align-items:center;justify-content:center;font-size:.9em;`;
+      div.textContent='🥚'.repeat(Math.min(4,Math.ceil(s.w/24)));
+      area.appendChild(div);
+    });
+    // Moving platform
+    if(!gameOver){
+      const pdiv=document.createElement('div');
+      pdiv.style.cssText=`position:absolute;left:${platformX}px;top:${H-LAYER_H*(stack.length+1)-10}px;width:${platformW}px;height:${LAYER_H}px;background:linear-gradient(90deg,#74c0fc,#339af0);border-radius:5px;box-shadow:0 3px 0 #1971c2;`;
+      area.appendChild(pdiv);
+    }
+    // Score
+    const scoreDiv=document.createElement('div');
+    scoreDiv.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:.85em;font-weight:800;';
+    scoreDiv.textContent=`Layer ${layers}`;area.appendChild(scoreDiv);
+  }
+
+  function loop(){
+    if(gameOver)return;
+    platformX+=direction*speed;
+    if(platformX<=0||platformX+platformW>=W)direction*=-1;
+    draw();window._stackRAF=requestAnimationFrame(loop);
+  }
+
+  function drop(){
+    if(gameOver)return;
+    const topX=stack.length>0?stack[stack.length-1].x:0;
+    const topW=stack.length>0?stack[stack.length-1].w:W;
+    const overlapL=Math.max(platformX,topX);
+    const overlapR=Math.min(platformX+platformW,topX+topW);
+    const overlap=overlapR-overlapL;
+    if(overlap<=4){gameOver=true;cancelAnimationFrame(window._stackRAF);endStack();return;}
+    stack.push({x:overlapL,w:overlap});
+    stackX=overlapL;stackW=overlap;
+    platformX=overlapL;platformW=overlap;
+    layers++;speed=2.8+layers*.18;
+    document.getElementById('stackInfo').textContent=`Layer ${layers}`;
+    spawnFloat(`+${layers}`,area.getBoundingClientRect().left+W/2,area.getBoundingClientRect().top+50,'#ffd43b','1em');
+    if(layers>=20){gameOver=true;cancelAnimationFrame(window._stackRAF);endStack();}
+  }
+
+  area.addEventListener('click',drop);
+  area.addEventListener('touchstart',e=>{e.preventDefault();drop();},{passive:false});
+  loop();
+
+  function endStack(){
+    const earn=layers*8;G.money+=earn;G.totalEarned+=earn;
+    if(layers>G.mgScores.stacker)G.mgScores.stacker=layers;
+    gainXP(layers*4);save();updateUI();
+    const ov=document.getElementById('mgOv');
+    if(ov)ov.innerHTML=`<div class="mg-title">${layers>=20?'🏆 Perfect!':'Game Over!'}</div>
+      <div style="color:white;font-size:1.1em;margin:10px 0;">${layers} layers stacked!<br><span style="color:#ffd43b;font-size:1.3em">+$${earn}</span></div>
+      <button onclick="endMiniGame(0);startStacker()" style="padding:12px 28px;background:linear-gradient(135deg,#ffd43b,#f59f00);border:none;border-radius:14px;font-weight:900;font-size:1em;color:#7a4400;cursor:pointer;margin:8px;">Play Again</button>
+      <button onclick="endMiniGame(0)" style="padding:12px 28px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:14px;font-weight:900;font-size:1em;color:white;cursor:pointer;">Done</button>`;
+  }
+}
+
+function endMiniGame(){
+  clearInterval(window._whackT);clearInterval(window._whackC);
+  cancelAnimationFrame(window._stackRAF);
+  const ov=document.getElementById('mgOv');if(ov)ov.remove();
+  checkAchievements();
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+recalcSilo();
+if(!G.challenges.list?.length)resetChallenges();
+G.season=Math.floor((G.day-1)/8)%4;
+buildWorld();applySeason();
+if(G.upgrades.truckUnlock>=1){
+  document.getElementById('btnTruck').classList.remove('locked');
+}
+if(!G.totalEarned&&G.level===1){
+  setTimeout(()=>showBanner('👋 Tap the coop to harvest eggs!'),1200);
+  setTimeout(()=>showBanner('💡 Buyers walk to your farm — tap them!'),8000);
+  setTimeout(()=>showBanner('🎮 Try Mini-Games for extra cash!'),16000);
+}
+updateUI();gainXP(0);checkAchievements();scheduleOrders();
+setInterval(save,14000);
+</script>
+</body>
+</html>
