@@ -404,10 +404,11 @@
         { id: 'p1', type: 'henCoop', level: 1, workers: [], stored: 0, eggCap: 20, cooldown: 0, autoHarvest: false, unlocked: true },
         { id: 'p2', type: 'feedFarm', level: 1, workers: [], stored: 0, rate: 0.5, cooldown: 0, autoHarvest: false, unlocked: true },
         { id: 'p3', type: 'waterWell', level: 1, workers: [], stored: 0, rate: 1.0, cooldown: 0, autoHarvest: false, unlocked: false },
-        { id: 'p4', type: 'henCoop', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
+        { id: 'p4', type: 'cornField', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
         { id: 'p5', type: 'organicFarm', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
         { id: 'p6', type: 'hatchery', level: 0, workers: [], stored: 0, eggCap: 0, cooldown: 0, autoHarvest: false, unlocked: false },
       ],
+
 
       // Factory queue
       factoryQueue: [],
@@ -439,7 +440,10 @@
 
       // Weather
       weather: { type: 'sunny', daysLeft: 2 },
+      marketTrend: 1.0,
+      frenzyActive: 0,
     };
+
 
     let G = JSON.parse(JSON.stringify(DEF));
     try { const s = localStorage.getItem('cft2'); if (s) G = { ...JSON.parse(JSON.stringify(DEF)), ...JSON.parse(s) }; } catch (e) { }
@@ -481,7 +485,9 @@
       waterWell: { icon: '💧', name: 'Water Well', output: 'water', baseRate: 20.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
       organicFarm: { icon: '🌿', name: 'Organic Coop', output: 'organic', baseRate: 4.0, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
       hatchery: { icon: '🐣', name: 'Hatchery', output: 'freeRange', baseRate: 2.0, feedNeeds: { feedWheat: 1, feedCorn: 1, water: 2 }, unlockCost: 600, maxLevel: 4 },
+      cornField: { icon: '🌽', name: 'Corn Field', output: 'feedCorn', baseRate: 12.0, feedNeeds: { water: 1 }, unlockCost: 150, maxLevel: 6 },
     };
+
 
     const RECIPES = [
       { id: 'powdered', icon: '🥛', name: 'Powdered Eggs', time: 20, inputs: { egg: 8 }, output: 'powdered', qty: 3, sellPrice: 18, unlockLevel: 1 },
@@ -555,8 +561,11 @@
     function getPriceMultiplier() {
       const season = SEASON_EFFECTS[G.season % 4];
       const weather = getCurrentWeather();
-      return season.price * weather.price * (1 + getStaffBonus('priceBonus')) * G.prestigeMult;
+      const volatility = G.marketTrend || 1.0;
+      const frenzy = (G.frenzyActive && G.tick % 2 === 0) ? 2.0 : 1.0;
+      return season.price * weather.price * (1 + getStaffBonus('priceBonus')) * G.prestigeMult * volatility * frenzy;
     }
+
     function getProductionMultiplier() {
       const season = SEASON_EFFECTS[G.season % 4];
       const weather = getCurrentWeather();
@@ -600,6 +609,16 @@
       // Weather tick
       tickWeather();
 
+      // Market Volatility (every 30s)
+      if (G.tick % 30 === 0) {
+        G.marketTrend = 0.8 + Math.random() * 0.4; // 80% to 120%
+        if (Math.random() > 0.9) {
+          G.frenzyActive = 10; // 10 seconds of frenzy
+          showToast('🔥 MARKET FRENZY! Prices Doubled!');
+        }
+      }
+      if (G.frenzyActive > 0) G.frenzyActive--;
+
       // Auto-staff actions
       autoStaffActions();
 
@@ -608,6 +627,10 @@
 
       // Update UI
       updateUI();
+      if (G.tick % 5 === 0) {
+        if (currentZone === 'farm') renderFarm();
+        else if (currentZone === 'factory') renderFactory();
+      }
 
       // Save every 30s
       if (G.tick % 30 === 0) save();
@@ -649,11 +672,12 @@
         const def = PLOT_DEFS[plot.type];
         if (!def) return;
 
-        // Check feed availability
+        // Check feed availability (with tiny buffer to prevent tick jitter)
         const feedNeeds = def.feedNeeds || {};
         const hasFeed = Object.entries(feedNeeds).every(([item, amt]) =>
-          (G.inv[item] || 0) >= amt * getFeedEff() * 0.016 // per tick fraction
+          (G.inv[item] || 0) > 0.001
         );
+
         plot.starving = !hasFeed;
         if (!hasFeed) return;
 
@@ -826,8 +850,9 @@
       addLedger(`Upgraded ${def.name} to Lv${plot.level}`, -cost, 'upgrade');
       spawnFloat(`⬆️ Lv${plot.level}`, null, window.innerWidth / 2, window.innerHeight / 2);
       showToast(`${def.name} upgraded to Level ${plot.level}!`);
-      save(); renderFarm();
+      save(); updateUI(); renderFarm();
     }
+
 
     function queueRecipe(recipeId) {
       const recipe = RECIPES.find(r => r.id === recipeId);
@@ -965,8 +990,9 @@
       if (upgradeId === 'truckSlot') G.maxTrucks = (G.maxTrucks || 1) + 1;
       if (upgradeId === 'autoCollect') G.upgrades.autoCollect = true;
       showToast(`✨ ${upg.name} upgraded!`);
-      save(); renderFarm();
+      save(); updateUI(); renderFarmUpgrades();
     }
+
 
     // ══════════════════════════════════════════════════════
     //  CONTRACTS
@@ -1168,16 +1194,24 @@
              </div>
           </div>
 
-          <!-- Conditional CTA -->
-          <div class="mt-3 flex justify-between items-center h-4">
-             <p class="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-                ${isStarving ? '<span class="text-red-500">⚠️ Needs Resources</span>' : '✅ Operational'}
-             </p>
-             ${pct >= 20 ? `<span class="text-[10px] font-black text-primary animate-bounce uppercase tracking-widest">TAP TO HARVEST</span>` : ''}
+          <!-- Conditional CTA & Upgrade Action -->
+          <div class="mt-4 flex justify-between items-center bg-white/40 dark:bg-black/20 -mx-5 -mb-5 px-5 py-3 border-t border-black/5 dark:border-white/5">
+             <div class="flex flex-col">
+                <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">
+                   ${isStarving ? '<span class="text-red-500 animate-pulse">⚠️ Starving</span>' : '✅ Operational'}
+                </p>
+                ${pct >= 20 ? `<span class="text-[10px] font-black text-primary animate-bounce uppercase tracking-widest">TAP TO HARVEST</span>` : '<span class="text-[9px] text-slate-400 font-bold uppercase">Producing...</span>'}
+             </div>
+             
+             <button class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter flex items-center gap-1.5 shadow-lg active:scale-90 transition-transform" onclick="upgradePlot('${plot.id}', event)">
+                <span class="material-symbols-outlined text-sm">upgrade</span>
+                $${Math.floor(80 * Math.pow(1.8, plot.level)).toLocaleString()}
+             </button>
           </div>
         </div>
         `;
       });
+
 
       html += `</div>`; // Close pasture grid
 
@@ -1208,8 +1242,13 @@
       html += `</div>`; // Close scrollable container
 
       const container = document.getElementById('farmRenderContainer');
-      if (container) container.innerHTML = html;
+      if (container) {
+        const scroll = container.scrollTop;
+        container.innerHTML = html;
+        container.scrollTop = scroll;
+      }
     }
+
 
 
     function renderFactory() {
@@ -1222,10 +1261,11 @@
         html += `<div class="bg-white dark:bg-slate-800 rounded-2xl p-4 text-center shadow-sm border border-dashed border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-400">No goods yet — start the coops!</div>`;
       } else {
         html += `<div class="flex flex-wrap gap-2">`;
-        html += allGoods.map(([k, v]) => `<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg px-3 py-1.5 flex items-center gap-2"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">${k}</span><span class="text-xs font-black text-primary">${Math.floor(v)}</span></div>`).join('');
+        html += allGoods.map(([k, v]) => `<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg px-3 py-1.5 flex items-center gap-2"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">${k}</span><span class="text-xs font-black text-primary">${v < 10 ? v.toFixed(1) : Math.floor(v)}</span></div>`).join('');
         html += `</div>`;
       }
       html += `</div>`;
+
 
       // Queue
       html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-2 px-1">Processing Queue (${G.factoryQueue.length}/${G.factorySlots} Slots)</h3>`;
@@ -1306,13 +1346,20 @@
 
       html += `
       <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-700 p-3">
-          <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-2">Live Market Rates</p>
+          <div class="flex justify-between items-center mb-2">
+             <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Live Market Rates</p>
+             <div class="flex items-center gap-2">
+                <span class="text-[9px] font-black uppercase ${mult > 1 ? 'text-green-500' : 'text-red-500'}">Trend: ${(mult * 100).toFixed(0)}%</span>
+                ${G.frenzyActive > 0 ? '<span class="animate-pulse text-[9px] font-black bg-primary text-white px-1.5 rounded">FRENZY!</span>' : ''}
+             </div>
+          </div>
           <div class="flex overflow-hidden relative w-full">
              <div class="animate-[marquee_20s_linear_infinite] whitespace-nowrap flex">${tickerItems}</div>
           </div>
       </div>
-      <style>@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }</style>
+      <style>@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } } @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }</style>
       `;
+
 
       // Contracts
       const activeContracts = G.contracts.filter(c => !c.accepted);
