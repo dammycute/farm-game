@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gourmet Marketplace - Egg Tycoon</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<div class="flex items-center bg-white dark:bg-slate-900/50 p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 mr-3">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<div class="flex-1">
+<h2 class="text-lg font-bold leading-tight tracking-tight">Gourmet Marketplace</h2>
+<p class="text-xs font-medium text-slate-500 dark:text-slate-400">Sell your fresh egg creations</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm">payments</span>
+<span class="text-primary font-bold text-sm">12,450</span>
+</div>
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-800">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">help</span>
+</button>
+</div>
+</div>
+<!-- Active Timed Deliveries Section -->
+<div class="px-4 pt-6 pb-2">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-xl font-bold tracking-tight">Timed Deliveries</h3>
+<span class="text-xs font-semibold px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg">2 Active Tasks</span>
+</div>
+<div class="space-y-4">
+<!-- Order Card 1 -->
+<div class="flex flex-col md:flex-row items-stretch gap-4 rounded-xl bg-white dark:bg-slate-900 p-4 shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex-[2_2_0px] flex flex-col justify-between gap-4">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">local_shipping</span>
+<p class="text-base font-bold leading-tight">Town Hall Banquet</p>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Reward: <span class="text-primary font-bold">+500 Gold</span> <span class="text-green-600 dark:text-green-400 font-medium">+20% Speed Bonus</span></p>
+</div>
+<div class="flex gap-3">
+<div class="flex-1 flex flex-col items-center justify-center rounded-lg py-2 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<p class="text-primary text-lg font-bold leading-none">00</p>
+<p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mt-1">Hrs</p>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center rounded-lg py-2 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<p class="text-primary text-lg font-bold leading-none">14</p>
+<p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mt-1">Min</p>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center rounded-lg py-2 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+<p class="text-primary text-lg font-bold leading-none">45</p>
+<p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mt-1">Sec</p>
+</div>
+</div>
+</div>
+<div class="w-full h-32 md:w-48 bg-center bg-no-repeat bg-cover rounded-xl shrink-0" data-alt="A festive town hall banquet table with food" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD4gLdtWTF9HqDiFvOVdTO7KFo1xcrTXxKUFrqiOVEsZAXXoRIcfPKizcUUWnKWizN62jGpraqsEdJsQ-NooccvqFiHBX6mz46WNTMQiEprVU6ShdaXTtNDbO9QcDEk8_Hq1ksGzrMrJrq_GOwOybD1B3FlKyD7X4bCoIgEDKNFOtrqDrXjyycMJ028O8tLfRpA7GMvGWKScp-aaDC_8zSCy1ZhuLWiJFI4eLW7GLgwQN-IEf6q2YYu7q3-EEv2UnlrzEeYlZVgm5FI");'>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Grid Section -->
+<div class="px-4 pt-6 pb-24">
+<h3 class="text-xl font-bold tracking-tight mb-4">Gourmet Products</h3>
+<div class="grid grid-cols-2 gap-4">
+<!-- Product Card: Omelette -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm">
+<div class="h-32 w-full bg-center bg-cover" data-alt="Fluffy yellow omelette with herbs" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDFJoADFKZLkdGjcJ6AlKn3-ltDWya_67lou9W75ieWcv4GoFVAzpmWEPlGKFnY_FOVohvIY71B7MbiNQoi1d_siNQVv87xX2yaEc015k-bpzZdKnk_3GhLMV0GUc19WrVqrjSenowvHMQw-ZXD3pNtkUmgtESFVuamZnE4acsC4wcxybrZXFgK6p77H6kEh-doVq1IQcAHwqcT-zKpYoGuXoDJb1f3QIb26Gifsth-6PZJxU1DDykqtBN9OAfJ25HnyAvBUJGKZxvK");'>
+</div>
+<div class="p-3 flex flex-col flex-1">
+<h4 class="font-bold text-sm mb-1">Classic Omelette</h4>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-amber-500 text-xs">egg</span>
+<span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">3 Eggs Required</span>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-xs">payments</span>
+<span class="text-sm font-bold ml-0.5">120</span>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg">Deliver</button>
+</div>
+</div>
+</div>
+<!-- Product Card: Powdered Eggs -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm">
+<div class="h-32 w-full bg-center bg-cover" data-alt="Fine yellow egg powder in a glass jar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBys-WrzA1jZ_b10pRQY7BKgiyfrNtrOSxt8gUk3w61iezbeHPqJVyH7W65nZdVEwbuBFCrTo8hqOjA4kmy6SRLj0I1yQq72vEXMTRvPlsoFXXUoFhUDrym5Xi1HY5qtRnEj-14VDg6TYwSKkZhQ_eqv2LHLB6lFkm3tAjglDhbDdVVjl96UsEAjS7fml7NLR-ZfYHHjX_HFHFK3UWjqan10Tywlv3degXIfsXQ0wc1ovgckiuYQY5TqsTT71E5riFMEHZb9B4SLDTe");'>
+</div>
+<div class="p-3 flex flex-col flex-1">
+<h4 class="font-bold text-sm mb-1">Powdered Eggs</h4>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-amber-500 text-xs">egg</span>
+<span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">10 Eggs Required</span>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-xs">payments</span>
+<span class="text-sm font-bold ml-0.5">450</span>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg">Deliver</button>
+</div>
+</div>
+</div>
+<!-- Product Card: Egg Cake -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm">
+<div class="h-32 w-full bg-center bg-cover" data-alt="Light yellow sponge cake piece" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCs01pra7yoPogs9TrAmpmJaqS0Fvhub8tawE-k72sdYjOaocBUnmhrch7uaOGCUkHWhe--8W7KvRtytkRGk16dy4FUeTMt1nMs1xAOO7xgjgswdD7E4bkJUnkDluNzo4D2fHo_ZfAhvgNZNEvMnwGqxmippxui3sGPQ_P2E9l8-ZO_ejMgY4WL3PXSHL6emvfp-RYFVb4tzyN-TpsbNO8x9TxNuiRN8kCnkMltg1k-5AubVjZwZhnzo8Jr_gS09M2oKcj_L7tx_xTu");'>
+</div>
+<div class="p-3 flex flex-col flex-1">
+<h4 class="font-bold text-sm mb-1">Sweet Egg Cake</h4>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-amber-500 text-xs">egg</span>
+<span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">6 Eggs Required</span>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-xs">payments</span>
+<span class="text-sm font-bold ml-0.5">320</span>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg">Deliver</button>
+</div>
+</div>
+</div>
+<!-- Product Card: Custard Batch -->
+<div class="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col shadow-sm">
+<div class="h-32 w-full bg-center bg-cover" data-alt="Creamy yellow custard in a bowl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvUmQGdqOI51Lzsd1g__L-OvGa8p0cdBO4NT-2_lmTtO6TJKchErFdUUNyMVvcsMz8PUCePu1oGJ_-owVlFAieBmZUOgBx70OlTnclP8VAQEXG7r6hfLjB0bvnqHuKN2IXG3qmMdEdA6QvO2SgecA8iCB-TtLfGuGy3GDy6bSg4xaqqpdUx3GJr5ahj2N6mcaqBwGpvcoqQ5GSffMiYXZh0khiDXUa_yV6nhkQFm-lbRkTayQTPXe_-YmAPz6iPY1CLEt8Wcugcyxy");'>
+</div>
+<div class="p-3 flex flex-col flex-1">
+<h4 class="font-bold text-sm mb-1">Custard Batch</h4>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-amber-500 text-xs">egg</span>
+<span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">15 Eggs Required</span>
+</div>
+<div class="mt-auto flex items-center justify-between">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-primary text-xs">payments</span>
+<span class="text-sm font-bold ml-0.5">850</span>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-lg">Deliver</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 w-full flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-3 pt-2">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">egg</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Farm</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Market</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Recipes</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Upgrades</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<p class="text-[10px] font-medium leading-normal tracking-[0.015em]">Settings</p>
+</a>
+</div>
+</div>
+</body></html>

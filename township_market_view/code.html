@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Egg Tycoon - Town View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400,FILL@0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec5b13",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#221610",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .isometric-grid {
+            background-image: 
+                linear-gradient(30deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+                linear-gradient(150deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+                linear-gradient(30deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+                linear-gradient(150deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+                linear-gradient(60deg, #d1d5db 25%, transparent 25.5%, transparent 75%, #d1d5db 75%, #d1d5db),
+                linear-gradient(60deg, #d1d5db 25%, transparent 25.5%, transparent 75%, #d1d5db 75%, #d1d5db);
+            background-size: 80px 140px;
+            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Top Navigation Bar -->
+<div class="z-20 flex items-center bg-background-light dark:bg-background-dark p-4 border-b border-primary/10 justify-between shadow-sm">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+<span class="material-symbols-outlined">menu</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-extrabold leading-tight tracking-tight flex-1 px-4">Egg Tycoon</h2>
+<div class="flex items-center justify-end gap-2">
+<span class="material-symbols-outlined text-primary">settings</span>
+</div>
+</div>
+<!-- Resources Dashboard -->
+<div class="z-20 flex flex-wrap gap-3 p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-primary/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">egg</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">EGGS</p>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-slate-900 dark:text-slate-100 tracking-tight text-xl font-black">1.2M</p>
+<p class="text-emerald-500 text-xs font-bold leading-normal">+15%</p>
+</div>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-primary/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">payments</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">CASH</p>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-slate-900 dark:text-slate-100 tracking-tight text-xl font-black">K 45.3B</p>
+<p class="text-emerald-500 text-xs font-bold leading-normal">+5%</p>
+</div>
+</div>
+</div>
+<!-- Main Town View Area -->
+<div class="relative flex-1 bg-slate-200 dark:bg-slate-900 overflow-hidden isometric-grid">
+<!-- Isometric Game Elements Container -->
+<div class="absolute inset-0 flex items-center justify-center p-8">
+<!-- Town Square Center (Simulated) -->
+<div class="relative w-full h-full max-w-4xl max-h-[600px]">
+<!-- Bakery Building -->
+<div class="absolute top-[10%] left-[15%] w-48 h-56 group cursor-pointer">
+<div class="w-full h-full bg-orange-100 dark:bg-orange-900/30 rounded-xl border-b-8 border-orange-200 dark:border-orange-800 relative shadow-xl overflow-hidden">
+<div class="absolute top-0 w-full h-12 bg-primary rounded-t-xl flex items-center justify-center text-white font-bold text-xs uppercase tracking-widest">Bakery</div>
+<div class="mt-14 px-4 space-y-2">
+<div class="h-4 bg-orange-200 dark:bg-orange-800 rounded w-full"></div>
+<div class="h-4 bg-orange-200 dark:bg-orange-800 rounded w-3/4"></div>
+</div>
+<div class="absolute bottom-4 left-4 size-10 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+</div>
+<!-- Truck Parked -->
+<div class="absolute -bottom-8 -right-8 w-32 h-16 bg-white dark:bg-slate-800 rounded-lg shadow-lg border-2 border-primary/20 flex items-center px-2 gap-2">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<div class="h-1 w-16 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+<div class="h-full bg-emerald-500" style="width: 75%;"></div>
+</div>
+</div>
+</div>
+<!-- Supermarket Building -->
+<div class="absolute top-[20%] right-[10%] w-64 h-64 group cursor-pointer">
+<div class="w-full h-full bg-blue-50 dark:bg-blue-900/20 rounded-xl border-b-8 border-blue-100 dark:border-blue-800 relative shadow-2xl">
+<div class="absolute top-0 w-full h-12 bg-blue-600 rounded-t-xl flex items-center justify-center text-white font-bold text-xs uppercase tracking-widest">Supermarket</div>
+<div class="grid grid-cols-3 gap-2 p-4 mt-12">
+<div class="h-12 bg-blue-100 dark:bg-blue-800/50 rounded-lg"></div>
+<div class="h-12 bg-blue-100 dark:bg-blue-800/50 rounded-lg"></div>
+<div class="h-12 bg-blue-100 dark:bg-blue-800/50 rounded-lg"></div>
+</div>
+</div>
+<!-- Truck Parked -->
+<div class="absolute -bottom-4 left-0 w-32 h-16 bg-white dark:bg-slate-800 rounded-lg shadow-lg border-2 border-primary/20 flex items-center px-2 gap-2">
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+<div class="h-1 w-16 bg-slate-200 dark:bg-slate-700 rounded overflow-hidden">
+<div class="h-full bg-primary" style="width: 30%;"></div>
+</div>
+</div>
+</div>
+<!-- Farmers Market Stall -->
+<div class="absolute bottom-[15%] left-[30%] w-40 h-32 group cursor-pointer">
+<div class="w-full h-full bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border-4 border-dashed border-emerald-200 dark:border-emerald-800 relative flex items-center justify-center">
+<div class="absolute -top-6 w-32 h-8 bg-emerald-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center uppercase">Local Market</div>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">egg</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">egg</span>
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">egg</span>
+</div>
+</div>
+</div>
+<!-- Pedestrians (Abstract) -->
+<div class="absolute top-1/2 left-1/2 size-4 bg-amber-400 rounded-full shadow-md"></div>
+<div class="absolute top-[45%] right-1/4 size-4 bg-rose-400 rounded-full shadow-md"></div>
+<div class="absolute bottom-1/3 left-1/3 size-4 bg-sky-400 rounded-full shadow-md"></div>
+<div class="absolute top-1/3 right-1/2 size-4 bg-emerald-400 rounded-full shadow-md"></div>
+</div>
+</div>
+<!-- Floating Notification -->
+<div class="absolute bottom-6 left-4 right-4 z-20">
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 rounded-xl p-4 shadow-xl border border-primary/20">
+<div class="text-white flex items-center justify-center rounded-lg bg-primary shrink-0 size-12">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-bold leading-none mb-1">Unloading Eggs</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">Delivery at the Bakery (75%)</p>
+</div>
+<div class="shrink-0 flex items-center gap-2">
+<div class="w-16 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+<div class="h-full bg-primary" style="width: 75%;"></div>
+</div>
+<p class="text-primary text-xs font-black">65</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="z-20 flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-6 pt-3">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 transition-colors hover:text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">agriculture</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wider uppercase">FARM</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1">storefront</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wider uppercase">TOWN</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 transition-colors hover:text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">shopping_basket</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wider uppercase">SHOP</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 transition-colors hover:text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">local_shipping</span>
+</div>
+<p class="text-[10px] font-bold leading-normal tracking-wider uppercase">TRUCKS</p>
+</a>
+</div>
+</div>
+</body></html>
