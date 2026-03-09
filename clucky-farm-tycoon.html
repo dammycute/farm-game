@@ -8,497 +8,179 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&amp;display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ec5b13",
+            "background-light": "#f8f6f6",
+            "background-dark": "#221610",
+          },
+          fontFamily: {
+            "display": ["Public Sans"]
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        },
+      },
+    }
+  </script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    :root {
-      --bg: #0F1A0A;
-      --bg2: #162010;
-      --bg3: #1E2D14;
-      --surface: #243318;
-      --surface2: #2D3F1E;
-      --surface3: #374C25;
-      --border: #3D5429;
-      --border2: #4A6632;
-      --gold: #F5C842;
-      --gold2: #E8A800;
-      --gold3: #FFF0A0;
-      --green: #5DD45A;
-      --green2: #3AB837;
-      --green3: #A8F5A6;
-      --red: #F55A5A;
-      --red2: #C83030;
-      --blue: #5AB0F5;
-      --blue2: #2880D8;
-      --purple: #C87AF5;
-      --orange: #F5904A;
-      --text: #E8F5E0;
-      --text2: #A8C890;
-      --text3: #6A8A52;
-      --gold-bg: rgba(245, 200, 66, .12);
-      --green-bg: rgba(93, 212, 90, .10);
-      --red-bg: rgba(245, 90, 90, .10);
-      --r: 14px;
-      --r-sm: 9px;
-      --r-lg: 20px;
-    }
-
-    html,
     body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      min-height: max(884px, 100dvh);
     }
 
-    /* ══ LEVEL BANNER ══ */
-    #levelBanner {
-      background: linear-gradient(90deg, #2D3F1E, #3D5429);
-      border-bottom: 2px solid var(--gold2);
-      padding: 8px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-      z-index: 100;
-    }
-
-    .lb-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .lb-badge {
-      background: var(--gold);
-      color: #3A2800;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 1.1em;
-      padding: 4px 10px;
-      border-radius: 8px;
-    }
-
-    .lb-goal {
-      font-size: .75em;
-      color: var(--text);
-      font-weight: 600;
-      line-height: 1.3;
-    }
-
-    .lb-progress {
-      font-family: 'Syne', sans-serif;
-      font-size: .9em;
-      font-weight: 700;
-      color: var(--gold3);
-    }
-
-    /* ══ SCROLLBAR ══ */
-    ::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border2);
-      border-radius: 2px;
-    }
-
-    /* ══ TABS (main zones) ══ */
-    #app {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    #tabBar {
-      display: flex;
-      background: var(--bg);
-      border-bottom: 1.5px solid var(--border);
-      flex-shrink: 0;
-      padding: 0 4px;
-    }
-
-    .tab {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 8px 4px 6px;
-      cursor: pointer;
-      border-bottom: 2.5px solid transparent;
-      color: var(--text3);
-      transition: color .15s, border-color .15s;
-      font-size: .6em;
-      font-weight: 700;
-      letter-spacing: .3px;
-      text-transform: uppercase;
-    }
-
-    .tab .ti {
-      font-size: 1.7em;
-    }
-
-    .tab.active {
-      color: var(--gold);
-      border-bottom-color: var(--gold);
-    }
-
-    #mainArea {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .zone {
-      position: absolute;
-      inset: 0;
-      overflow-y: auto;
+    .zone-container {
       display: none;
-      padding-bottom: 10px;
+      height: 100%;
+      overflow-y: auto;
     }
 
-    .zone.active {
+    .zone-container.active {
       display: block;
     }
 
-    /* ══ UNIVERSAL CARD ══ */
-    .card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 15px;
-      margin: 0 10px 10px;
-    }
-
-    .card.gold-border {
-      border-color: var(--gold2);
-    }
-
-    .card.green-border {
-      border-color: var(--green2);
-    }
-
-    .card.red-border {
-      border-color: var(--red2);
-    }
-
-    .card-title {
-      font-family: 'Syne', sans-serif;
-      font-size: .92em;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-
-    .card-sub {
-      font-size: .72em;
-      color: var(--text2);
-      line-height: 1.5;
-    }
-
-    .card-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .card-icon {
-      font-size: 1.8em;
-      flex-shrink: 0;
-    }
-
-    /* ══ HEADER BAR per zone ══ */
-    .zone-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--bg);
-      padding: 10px 14px 8px;
-      border-bottom: 1.5px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .zone-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.15em;
-      font-weight: 800;
-      color: var(--gold);
-    }
-
-    .zone-sub {
-      font-size: .72em;
-      color: var(--text3);
-    }
-
-    /* ══ STAT PILLS ══ */
-    .stats-row {
-      display: flex;
-      gap: 6px;
-      padding: 10px 10px 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .stats-row::-webkit-scrollbar {
-      display: none;
-    }
-
-    .stat-pill {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 30px;
-      padding: 6px 13px;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .stat-pill .lbl {
-      font-size: .62em;
-      color: var(--text3);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-
-    .stat-pill .val {
-      font-family: 'Syne', sans-serif;
-      font-size: .9em;
-      font-weight: 700;
-    }
-
-    .stat-pill.gold .val {
-      color: var(--gold);
-    }
-
-    .stat-pill.green .val {
-      color: var(--green);
-    }
-
-    .stat-pill.red .val {
-      color: var(--red);
-    }
-
-    .stat-pill.blue .val {
-      color: var(--blue);
-    }
-
-    /* ══ SECTION LABEL ══ */
-    .sec-label {
-      font-size: .62em;
-      font-weight: 700;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 1.8px;
-      padding: 12px 14px 5px;
-    }
-
-    /* ══ BUTTONS ══ */
-    .btn {
-      border: none;
-      border-radius: var(--r-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform .1s, filter .1s;
-    }
-
-    .btn:active {
-      transform: scale(.91);
-    }
-
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold), var(--gold2));
-      color: #3A2800;
-      font-size: .82em;
-      padding: 9px 16px;
-    }
-
-    .btn-green {
-      background: linear-gradient(135deg, var(--green), var(--green2));
-      color: #0F1A0A;
-      font-size: .82em;
-      padding: 9px 16px;
-    }
-
-    .btn-blue {
-      background: linear-gradient(135deg, var(--blue), var(--blue2));
-      color: #fff;
-      font-size: .82em;
-      padding: 9px 16px;
-    }
-
-    .btn-red {
-      background: linear-gradient(135deg, var(--red), var(--red2));
-      color: #fff;
-      font-size: .82em;
-      padding: 9px 16px;
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1.5px solid var(--border2);
-      color: var(--text2);
-      font-size: .8em;
-      padding: 8px 14px;
-      border-radius: var(--r-sm);
-    }
-
-    .btn-full {
-      width: 100%;
-      padding: 11px;
-      font-size: .88em;
-    }
-
-    .btn:disabled {
-      opacity: .35;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .btn-sm {
-      font-size: .74em;
-      padding: 6px 12px;
-    }
-
-    /* ══ PROGRESS BAR ══ */
-    .progress {
-      height: 6px;
-      background: var(--bg2);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-
+    /* Progress Bar Animations */
     .progress-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width .4s;
+      transition: width 0.3s ease-out;
     }
 
-    .progress-fill.gold {
-      background: linear-gradient(90deg, var(--gold2), var(--gold));
+    /* Modals */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .7);
+      z-index: 5000;
+      display: flex;
+      align-items: flex-end;
     }
 
-    .progress-fill.green {
-      background: linear-gradient(90deg, var(--green2), var(--green));
+    .modal-box {
+      width: 100%;
+      max-height: 88vh;
+      background: #f8f6f6;
+      border-radius: 22px 22px 0 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .25s cubic-bezier(.34, 1.45, .64, 1);
     }
 
-    .progress-fill.blue {
-      background: linear-gradient(90deg, var(--blue2), var(--blue));
+    .dark .modal-box {
+      background: #221610;
+      border-top: 1px solid #334155;
     }
 
-    .progress-fill.red {
-      background: linear-gradient(90deg, var(--red2), var(--red));
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%)
+      }
+
+      to {
+        transform: translateY(0)
+      }
     }
 
-    /* ══ TOGGLE ══ */
-    .toggle-row {
+    .modal-head {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 2px 0;
-    }
-
-    .toggle {
-      position: relative;
-      width: 40px;
-      height: 22px;
+      padding: 14px 16px 10px;
       flex-shrink: 0;
+      position: relative;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
 
-    .toggle input {
-      opacity: 0;
-      width: 0;
-      height: 0;
+    .dark .modal-head {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
     }
 
-    .toggle-slider {
+    .modal-drag {
+      width: 36px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 2px;
       position: absolute;
-      inset: 0;
-      background: var(--surface2);
-      border-radius: 11px;
-      cursor: pointer;
-      transition: .2s;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    .toggle-slider:before {
-      content: '';
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      left: 3px;
-      top: 3px;
-      background: var(--text3);
-      border-radius: 50%;
-      transition: .2s;
+    .dark .modal-drag {
+      background: #475569;
     }
 
-    .toggle input:checked+.toggle-slider {
-      background: var(--green2);
-    }
-
-    .toggle input:checked+.toggle-slider:before {
-      transform: translateX(18px);
-      background: white;
-    }
-
-    /* ══ BADGE ══ */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: .65em;
+    .modal-title {
+      font-family: 'Public Sans', sans-serif;
+      font-size: 1.1em;
       font-weight: 700;
+      color: #ec5b13;
+      flex: 1;
+      text-align: center;
+      margin-top: 4px;
     }
 
-    .badge-gold {
-      background: var(--gold-bg);
-      color: var(--gold);
-      border: 1px solid var(--gold2);
+    .modal-close {
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+      color: #64748b;
+      font-size: 1.2em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .badge-green {
-      background: var(--green-bg);
-      color: var(--green);
-      border: 1px solid var(--green2);
+    .modal-body {
+      overflow-y: auto;
+      flex: 1;
+      padding-bottom: 20px;
     }
 
-    .badge-red {
-      background: var(--red-bg);
-      color: var(--red);
-      border: 1px solid var(--red2);
+    /* Toasts */
+    #toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(34, 22, 16, 0.95);
+      color: #f8f6f6;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.82em;
+      font-weight: 600;
+      z-index: 8000;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      border: 1.5px solid #ec5b13;
+      white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .badge-blue {
-      background: rgba(90, 176, 245, .12);
-      color: var(--blue);
-      border: 1px solid var(--blue2);
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
-    /* ══ FLOATERS ══ */
+    /* Floaters */
     .floater {
       position: fixed;
       z-index: 9999;
       font-weight: 700;
-      font-family: 'Syne', sans-serif;
+      font-family: 'Public Sans', sans-serif;
       pointer-events: none;
       animation: floatUp 1.1s ease-out forwards;
       font-size: 1em;
@@ -517,726 +199,183 @@
 
       100% {
         opacity: 0;
-        transform: translateY(-80px) scale(.8);
+        transform: translateY(-80px) scale(0.8);
       }
     }
 
-    /* ══ TOAST ══ */
-    #toast {
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%) translateY(10px);
-      background: rgba(15, 26, 10, .95);
-      color: var(--text);
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: .82em;
-      font-weight: 600;
-      z-index: 8000;
-      opacity: 0;
-      transition: opacity .2s, transform .2s;
-      pointer-events: none;
-      border: 1.5px solid var(--border2);
-      white-space: nowrap;
-      max-width: 92vw;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* ══ MODAL ══ */
-    .modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, .7);
-      z-index: 5000;
-      display: flex;
-      align-items: flex-end;
-    }
-
-    .modal-box {
-      width: 100%;
-      max-height: 88vh;
-      background: var(--bg2);
-      border-radius: 22px 22px 0 0;
-      border-top: 1.5px solid var(--border);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      animation: slideUp .25s cubic-bezier(.34, 1.45, .64, 1);
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(100%)
-      }
-
-      to {
-        transform: translateY(0)
-      }
-    }
-
-    .modal-head {
-      display: flex;
-      align-items: center;
-      padding: 14px 16px 10px;
-      border-bottom: 1.5px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .modal-drag {
-      width: 36px;
-      height: 4px;
-      background: var(--border2);
-      border-radius: 2px;
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .modal-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.1em;
-      font-weight: 700;
-      color: var(--gold);
-      flex: 1;
-      text-align: center;
-      margin-top: 4px;
-    }
-
-    .modal-close {
-      background: var(--surface);
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      color: var(--text2);
-      font-size: 1em;
-      cursor: pointer;
-    }
-
-    .modal-body {
-      overflow-y: auto;
-      flex: 1;
-      padding-bottom: 20px;
-    }
-
-    /* ══ FARM ZONE ══ */
-    .farm-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 0 10px;
-    }
-
-    .plot-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: var(--r);
-      padding: 12px;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .plot-card:active {
-      transform: scale(.96);
-    }
-
-    .plot-card.active-plot {
-      border-color: var(--green2);
-      background: var(--surface2);
-    }
-
-    .plot-card.locked-plot {
-      opacity: .45;
-      cursor: not-allowed;
-    }
-
-    .plot-label {
-      font-size: .65em;
-      font-weight: 700;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: .8px;
-      margin-bottom: 4px;
-    }
-
-    .plot-name {
-      font-family: 'Syne', sans-serif;
-      font-size: .88em;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .plot-output {
-      font-size: .72em;
-      color: var(--green);
-      margin-top: 2px;
-    }
-
-    .plot-bar-wrap {
-      margin-top: 8px;
-    }
-
-    .plot-shimmer {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .04), transparent);
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      from {
-        transform: translateX(-100%)
-      }
-
-      to {
-        transform: translateX(100%)
-      }
-    }
-
-    /* ══ MARKET ZONE ══ */
-    .price-ticker {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      margin: 0 10px 10px;
-      border-radius: var(--r);
-      padding: 10px 14px;
-      overflow: hidden;
-    }
-
-    .ticker-row {
-      display: flex;
-      gap: 16px;
-      animation: tickerScroll 18s linear infinite;
-    }
-
-    .ticker-item {
-      white-space: nowrap;
-      font-size: .75em;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    @keyframes tickerScroll {
-      from {
-        transform: translateX(0)
-      }
-
-      to {
-        transform: translateX(-50%)
-      }
-    }
-
-    .price-up {
-      color: var(--green);
-    }
-
-    .price-dn {
-      color: var(--red);
-    }
-
-    .contract-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: var(--r);
-      padding: 13px 14px;
-      margin: 0 10px 8px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .contract-card.urgent {
-      border-color: var(--gold2);
-      background: rgba(245, 200, 66, .06);
-    }
-
-    .contract-card.lucrative {
-      border-color: var(--green2);
-    }
-
-    .con-icon {
-      font-size: 2em;
-      flex-shrink: 0;
-    }
-
-    .con-info {
-      flex: 1;
-    }
-
-    .con-name {
-      font-size: .88em;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .con-detail {
-      font-size: .72em;
-      color: var(--text2);
-      margin-top: 2px;
-      line-height: 1.5;
-    }
-
-    .con-reward {
-      font-size: .82em;
-      font-weight: 700;
-      color: var(--gold);
-      margin-top: 3px;
-    }
-
-    .con-action {
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      align-items: flex-end;
-    }
-
-    /* ══ FACTORY ZONE ══ */
-    .recipe-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: var(--r);
-      padding: 13px 14px;
-      margin: 0 10px 8px;
-    }
-
-    .recipe-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .recipe-icon {
-      font-size: 2em;
-    }
-
-    .recipe-meta {
-      flex: 1;
-    }
-
-    .recipe-name {
-      font-size: .9em;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .recipe-profit {
-      font-size: .75em;
-      color: var(--green);
-      margin-top: 1px;
-    }
-
-    .recipe-ingredients {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 8px;
-    }
-
-    .ingr-chip {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 9px;
-      font-size: .7em;
-      font-weight: 600;
-    }
-
-    .ingr-chip.ok {
-      border-color: var(--green2);
-      color: var(--green3);
-    }
-
-    .ingr-chip.short {
-      border-color: var(--red2);
-      color: var(--red);
-    }
-
-    .factory-queue {
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--r);
-      padding: 12px 14px;
-      margin: 0 10px 8px;
-    }
-
-    .queue-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: .8em;
-    }
-
-    .queue-item:last-child {
-      border-bottom: none;
-    }
-
-    .queue-timer {
-      color: var(--gold);
-      font-weight: 700;
-      font-size: .85em;
-    }
-
-    /* ══ STAFF ZONE ══ */
-    .staff-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: var(--r);
-      padding: 13px 14px;
-      margin: 0 10px 8px;
-    }
-
-    .staff-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .staff-avatar {
-      font-size: 2.2em;
-      flex-shrink: 0;
-    }
-
-    .staff-info {
-      flex: 1;
-    }
-
-    .staff-name {
-      font-size: .88em;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .staff-role {
-      font-size: .7em;
-      color: var(--text3);
-      margin-top: 1px;
-    }
-
-    .staff-skill {
-      font-size: .72em;
-      color: var(--text2);
-      margin-top: 3px;
-    }
-
-    .staff-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 8px;
-    }
-
-    .salary-tag {
-      font-size: .72em;
-      font-weight: 700;
-      color: var(--red);
-      background: var(--red-bg);
-      border: 1px solid var(--red2);
-      border-radius: 20px;
-      padding: 3px 9px;
-    }
-
-    .morale-bar {
-      height: 5px;
-      background: var(--bg2);
-      border-radius: 3px;
-      margin-top: 4px;
-      overflow: hidden;
-      width: 80px;
-    }
-
-    .morale-fill {
-      height: 100%;
-      border-radius: 3px;
-      background: linear-gradient(90deg, #F55A5A, #F5C842, #5DD45A);
-    }
-
-    /* ══ FINANCE ZONE ══ */
-    .finance-summary {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      margin: 0 10px 10px;
-      border-radius: var(--r);
-      padding: 14px 16px;
-    }
-
-    .fin-big {
-      font-family: 'Syne', sans-serif;
-      font-size: 2em;
-      font-weight: 800;
-    }
-
-    .fin-big.profit {
-      color: var(--green);
-    }
-
-    .fin-big.loss {
-      color: var(--red);
-    }
-
-    .ledger-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: .8em;
-    }
-
-    .ledger-row:last-child {
-      border-bottom: none;
-    }
-
-    .ledger-label {
-      color: var(--text2);
-    }
-
-    .ledger-val {
-      font-weight: 700;
-    }
-
-    .ledger-val.in {
-      color: var(--green);
-    }
-
-    .ledger-val.out {
-      color: var(--red);
-    }
-
-    /* ══ TRUCK TRACKER ══ */
-    .truck-track {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      margin: 0 10px 8px;
-      border-radius: var(--r);
-      padding: 12px 14px;
-    }
-
-    .truck-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 5px 0;
-    }
-
-    .truck-icon {
-      font-size: 1.5em;
-    }
-
-    .truck-info {
-      flex: 1;
-    }
-
-    .truck-name {
-      font-size: .82em;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .truck-status {
-      font-size: .7em;
-      color: var(--text2);
-    }
-
-    .truck-road {
-      flex: 1;
-      height: 6px;
-      background: var(--bg2);
-      border-radius: 3px;
-      overflow: hidden;
-      min-width: 60px;
-    }
-
-    .truck-road-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold2), var(--gold));
-      border-radius: 3px;
-      transition: width .5s;
-    }
-
-    /* ══ WEATHER ══ */
-    .weather-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface2);
-      margin: 0 10px 8px;
-      border-radius: var(--r-sm);
-      padding: 8px 12px;
-      font-size: .78em;
-    }
-
-    .weather-icon {
-      font-size: 1.6em;
-    }
-
-    .weather-text {
-      flex: 1;
-      color: var(--text2);
-    }
-
-    .weather-effect {
-      font-weight: 700;
-      color: var(--gold);
+    /* Isometric grid for town */
+    .isometric-grid {
+      background-image:
+        linear-gradient(30deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+        linear-gradient(150deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+        linear-gradient(30deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+        linear-gradient(150deg, #e5e7eb 12%, transparent 12.5%, transparent 87%, #e5e7eb 87.5%, #e5e7eb),
+        linear-gradient(60deg, #d1d5db 25%, transparent 25.5%, transparent 75%, #d1d5db 75%, #d1d5db),
+        linear-gradient(60deg, #d1d5db 25%, transparent 25.5%, transparent 75%, #d1d5db 75%, #d1d5db);
+      background-size: 80px 140px;
+      background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+    }
+
+    .dark .isometric-grid {
+      background-image:
+        linear-gradient(30deg, #1e293b 12%, transparent 12.5%, transparent 87%, #1e293b 87.5%, #1e293b),
+        linear-gradient(150deg, #1e293b 12%, transparent 12.5%, transparent 87%, #1e293b 87.5%, #1e293b),
+        linear-gradient(30deg, #1e293b 12%, transparent 12.5%, transparent 87%, #1e293b 87.5%, #1e293b),
+        linear-gradient(150deg, #1e293b 12%, transparent 12.5%, transparent 87%, #1e293b 87.5%, #1e293b),
+        linear-gradient(60deg, #0f172a 25%, transparent 25.5%, transparent 75%, #0f172a 75%, #0f172a),
+        linear-gradient(60deg, #0f172a 25%, transparent 25.5%, transparent 75%, #0f172a 75%, #0f172a);
     }
   </style>
 </head>
 
-<body>
-  <div id="app">
+<body
+  class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-hidden">
+  <div id="app"
+    class="relative flex h-[100dvh] w-full flex-col max-w-md mx-auto overflow-hidden shadow-2xl bg-white dark:bg-slate-900">
 
-    <!-- LEVEL BANNER -->
-    <div id="levelBanner">
-      <div class="lb-left">
-        <div class="lb-badge" id="lbLevel">Lv 1</div>
-        <div class="lb-goal" id="lbDesc">Loading goal...</div>
+    <!-- Top UI Bar (Global Header) -->
+    <div id="topHeader"
+      class="absolute top-0 left-0 right-0 z-20 flex flex-col gap-2 p-4 bg-gradient-to-b from-slate-900/50 to-transparent pointer-events-none">
+      <div class="flex items-center justify-between gap-2 pointer-events-auto">
+        <!-- Eggs Counter -->
+        <div
+          class="flex items-center gap-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full px-3 py-1.5 border-2 border-primary shadow-sm"
+          id="headerEggsPill">
+          <span class="material-symbols-outlined text-primary text-xl">egg</span>
+          <div class="flex flex-col -space-y-1">
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Eggs</span>
+            <span class="text-xs font-extrabold text-slate-900 dark:text-white" id="headerEggCount">0</span>
+          </div>
+        </div>
+
+        <!-- Cash Counter -->
+        <div
+          class="flex items-center gap-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full px-3 py-1.5 border-2 border-green-500 shadow-sm">
+          <span class="material-symbols-outlined text-green-600 text-xl">payments</span>
+          <div class="flex flex-col -space-y-1 text-right">
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Cash</span>
+            <span class="text-xs font-extrabold text-slate-900 dark:text-white" id="headerCashCount">$0</span>
+          </div>
+        </div>
+
+        <button
+          class="flex items-center justify-center size-8 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700"
+          onclick="switchTab('finance')">
+          <span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-sm">analytics</span>
+        </button>
       </div>
-      <div class="lb-progress" id="lbProgress">0%</div>
+
+      <!-- Level Progress Bar pointer-events-auto -->
+      <div class="flex flex-col gap-1 px-1 pointer-events-auto" id="levelProgressArea">
+        <div class="flex justify-between items-end">
+          <span class="text-[10px] font-black text-white drop-shadow-md bg-black/30 px-1.5 rounded" id="lbLevel">LVL
+            1</span>
+          <span class="text-[9px] font-bold text-white drop-shadow-md bg-black/30 px-1.5 rounded" id="lbDesc">Loading
+            goal...</span>
+          <span class="text-[9px] font-bold text-white drop-shadow-md" id="lbProgressText">0%</span>
+        </div>
+        <div class="h-2 w-full bg-slate-200/30 backdrop-blur-sm rounded-full overflow-hidden border border-white/20">
+          <div class="h-full bg-primary rounded-full shadow-[0_0_8px_rgba(236,91,19,0.6)] transition-all duration-300"
+            id="lbProgressBar" style="width: 0%;"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- TAB BAR -->
-    <div id="tabBar">
-      <div class="tab active" onclick="switchTab('farm')" id="tab-farm">
-        <div class="ti">🌾</div>Farm
-      </div>
-      <div class="tab" onclick="switchTab('factory')" id="tab-factory">
-        <div class="ti">🏭</div>Factory
-      </div>
-      <div class="tab" onclick="switchTab('market')" id="tab-market">
-        <div class="ti">📊</div>Market
-      </div>
-      <div class="tab" onclick="switchTab('staff')" id="tab-staff">
-        <div class="ti">👷</div>Staff
-      </div>
-      <div class="tab" onclick="switchTab('trucks')" id="tab-trucks">
-        <div class="ti">🚚</div>Fleet
-      </div>
-      <div class="tab" onclick="switchTab('finance')" id="tab-finance">
-        <div class="ti">💹</div>Finance
-      </div>
-    </div>
+    <!-- Main View Area Content container -->
+    <div id="mainArea" class="flex-1 overflow-hidden relative pb-[80px]">
 
-    <div id="mainArea">
       <!-- FARM ZONE -->
-      <div class="zone active" id="zone-farm">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">🌾 Farm Operations</div>
-            <div class="zone-sub" id="farmDay">Day 1 · Spring</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-family:'Syne',sans-serif;font-size:1.1em;font-weight:700;color:var(--gold)"
-              id="cashDisplay">$0</div>
-            <div style="font-size:.65em;color:var(--text3)" id="rateDisplay">$0/min</div>
-          </div>
-        </div>
-        <div class="stats-row" id="farmStats"></div>
-        <div id="weatherBar"></div>
-        <div class="sec-label">PRODUCTION PLOTS</div>
-        <div class="farm-grid" id="plotGrid"></div>
-        <div class="sec-label">SUPPLY CHAIN</div>
-        <div id="supplyChain"></div>
-        <div class="sec-label">FARM UPGRADES</div>
-        <div id="farmUpgrades"></div>
+      <div class="zone-container active pt-[96px]" id="zone-farm">
+        <div id="farmRenderContainer" class="h-full w-full"></div>
       </div>
 
-      <!-- FACTORY ZONE -->
-      <div class="zone" id="zone-factory">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">🏭 Processing Factory</div>
-            <div class="zone-sub">Turn raw eggs into premium goods</div>
-          </div>
-          <div><button class="btn btn-ghost btn-sm" onclick="openFactoryQueue()">Queue <span
-                id="queueCount">0</span></button></div>
-        </div>
-        <div class="sec-label">INVENTORY</div>
-        <div id="inventoryDisplay"></div>
-        <div class="sec-label">RECIPES</div>
-        <div id="recipeList"></div>
-        <div class="sec-label">PROCESSING QUEUE</div>
-        <div id="factoryQueueDisplay"></div>
+      <!-- MARKET (TOWN) ZONE -->
+      <div class="zone-container bg-slate-200 dark:bg-slate-900 pt-[88px]" id="zone-market">
+        <div id="marketRenderContainer" class="h-full w-full"></div>
       </div>
 
-      <!-- MARKET ZONE -->
-      <div class="zone" id="zone-market">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">📊 Egg Exchange</div>
-            <div class="zone-sub">Live prices · Contracts · Bulk deals</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="refreshContracts()">↻ Refresh</button>
-        </div>
-        <div class="price-ticker" id="priceTicker"></div>
-        <div class="sec-label">ACTIVE CONTRACTS <span id="contractTimer"
-            style="color:var(--gold);font-size:.85em;margin-left:4px;"></span></div>
-        <div id="contractList"></div>
-        <div class="sec-label">SPOT MARKET — SELL NOW</div>
-        <div id="spotMarket"></div>
+      <!-- FACTORY / RECIPES ZONE -->
+      <div class="zone-container bg-background-light dark:bg-background-dark pt-[88px]" id="zone-factory">
+        <div id="factoryRenderContainer" class="h-full w-full px-4 pb-20"></div>
       </div>
 
-      <!-- STAFF ZONE -->
-      <div class="zone" id="zone-staff">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">👷 Staff Management</div>
-            <div class="zone-sub" id="staffSub">0 employees · $0/day payroll</div>
-          </div>
-          <button class="btn btn-gold btn-sm" onclick="openHireModal()">+ Hire</button>
+      <!-- UPGRADES & HIRING ZONE -->
+      <div class="zone-container bg-background-light dark:bg-background-dark pt-[88px]" id="zone-upgrades">
+        <div class="flex border-b border-primary/10 px-4 bg-white dark:bg-slate-900 sticky top-0 z-10">
+          <button class="flex-1 py-3 text-sm font-bold border-b-4 border-primary text-primary"
+            onclick="switchUpgradeTab('upgrades')" id="btn-tab-upgrades">Upgrades</button>
+          <button class="flex-1 py-3 text-sm font-bold border-b-4 border-transparent text-slate-500 dark:text-slate-400"
+            onclick="switchUpgradeTab('staff')" id="btn-tab-staff">Staff</button>
         </div>
-        <div id="staffMorale"></div>
-        <div class="sec-label">YOUR TEAM</div>
-        <div id="staffList"></div>
-        <div class="sec-label">PERFORMANCE BONUSES</div>
-        <div id="bonusList"></div>
+        <div id="upgradesRenderContainer" class="h-full w-full pb-20"></div>
       </div>
 
-      <!-- TRUCKS ZONE -->
-      <div class="zone" id="zone-trucks">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">🚚 Delivery Fleet</div>
-            <div class="zone-sub" id="fleetSub">Expand your reach</div>
-          </div>
-          <button class="btn btn-gold btn-sm" onclick="openBuyTruckModal()">+ Buy Truck</button>
-        </div>
-        <div class="sec-label">ACTIVE ROUTES</div>
-        <div id="truckList"></div>
-        <div class="sec-label">DELIVERY ROUTES</div>
-        <div id="routeList"></div>
+      <!-- TRUCKS (FLEET) ZONE -->
+      <div class="zone-container bg-background-light dark:bg-background-dark pt-[88px]" id="zone-trucks">
+        <div id="trucksRenderContainer" class="h-full w-full pb-20"></div>
       </div>
 
       <!-- FINANCE ZONE -->
-      <div class="zone" id="zone-finance">
-        <div class="zone-header">
-          <div>
-            <div class="zone-title">💹 Financial Dashboard</div>
-            <div class="zone-sub" id="finPeriod">Today</div>
+      <div class="zone-container bg-background-light dark:bg-background-dark pt-[88px]" id="zone-finance">
+        <div id="financeRenderContainer" class="h-full w-full px-4 pb-20"></div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div
+      class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-2 pb-6 pt-3 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+      <div class="flex items-center justify-between">
+        <a class="flex flex-1 flex-col items-center gap-1 group cursor-pointer" onclick="switchTab('farm')"
+          id="nav-farm">
+          <div
+            class="nav-icon-container relative flex items-center justify-center size-10 rounded-xl bg-primary text-white transition-all group-active:scale-95">
+            <span class="material-symbols-outlined text-xl">agriculture</span>
           </div>
-        </div>
-        <div id="financeSummary"></div>
-        <div class="sec-label">INCOME LEDGER</div>
-        <div id="ledger"></div>
-        <div class="sec-label">BUSINESS MILESTONES</div>
-        <div id="milestones"></div>
+          <p class="nav-text text-[10px] font-extrabold text-primary uppercase tracking-wider">Farm</p>
+        </a>
+
+        <a class="flex flex-1 flex-col items-center gap-1 group cursor-pointer" onclick="switchTab('market')"
+          id="nav-market">
+          <div
+            class="nav-icon-container flex items-center justify-center size-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 transition-all group-active:scale-95">
+            <span class="material-symbols-outlined text-xl">storefront</span>
+          </div>
+          <p class="nav-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Town</p>
+        </a>
+
+        <!-- Floating action button context (Factory) -->
+        <a class="flex flex-col items-center gap-1 group cursor-pointer mx-1" onclick="switchTab('factory')"
+          id="nav-factory">
+          <div
+            class="nav-icon-container size-12 bg-primary dark:bg-primary rounded-full flex items-center justify-center -mt-6 shadow-lg shadow-primary/40 text-white border-2 border-white dark:border-slate-800 transition-all group-active:scale-95">
+            <span class="material-symbols-outlined text-2xl">menu_book</span>
+          </div>
+          <p class="nav-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Recipes
+          </p>
+        </a>
+
+        <a class="flex flex-1 flex-col items-center gap-1 group cursor-pointer" onclick="switchTab('upgrades')"
+          id="nav-upgrades">
+          <div
+            class="nav-icon-container flex items-center justify-center size-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 transition-all group-active:scale-95">
+            <span class="material-symbols-outlined text-xl">trending_up</span>
+          </div>
+          <p class="nav-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Upgrades
+          </p>
+        </a>
+
+        <a class="flex flex-1 flex-col items-center gap-1 group cursor-pointer" onclick="switchTab('trucks')"
+          id="nav-trucks">
+          <div
+            class="nav-icon-container flex items-center justify-center size-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 transition-all group-active:scale-95">
+            <span class="material-symbols-outlined text-xl">local_shipping</span>
+          </div>
+          <p class="nav-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Trucks
+          </p>
+        </a>
       </div>
     </div>
   </div>
@@ -1887,49 +1026,17 @@
     //  UI RENDERING
     // ══════════════════════════════════════════════════════
     function updateUI() {
-      document.getElementById('cashDisplay').textContent = '$' + Math.floor(G.cash).toLocaleString();
-      const rph = G.dailyRevenue / Math.max(1, G.tick % 120) * 60;
-      document.getElementById('rateDisplay').textContent = `$${Math.floor(rph)}/min est.`;
-      document.getElementById('farmDay').textContent = `Day ${G.day} · ${SEASONS[G.season % 4]}`;
-
-      // Farm stats pills
-      const se = SEASON_EFFECTS[G.season % 4];
-      const w = getCurrentWeather();
-      document.getElementById('farmStats').innerHTML = `
-    <div class="stat-pill gold"><span class="lbl">Cash</span><span class="val">$${Math.floor(G.cash).toLocaleString()}</span></div>
-    <div class="stat-pill ${G.inv.egg > G.invCap.egg * .8 ? 'red' : 'green'}"><span class="lbl">Eggs</span><span class="val">${Math.floor(G.inv.egg || 0)}/${G.invCap.egg}</span></div>
-    <div class="stat-pill blue"><span class="lbl">Feed</span><span class="val">${Math.floor(G.inv.feedWheat || 0)}</span></div>
-    <div class="stat-pill blue"><span class="lbl">Water</span><span class="val">${Math.floor(G.inv.water || 0)}</span></div>
-    <div class="stat-pill"><span class="lbl">Revenue</span><span class="val" style="color:var(--green)">$${Math.floor(G.totalRevenue).toLocaleString()}</span></div>
-    <div class="stat-pill"><span class="lbl">Payroll</span><span class="val" style="color:var(--red)">$${getPayroll()}/day</span></div>
-  `;
-
-      // Weather bar
-      document.getElementById('weatherBar').innerHTML = `
-    <div class="weather-bar">
-      <div class="weather-icon">${w.icon}</div>
-      <div class="weather-text">${w.label} · ${G.weather.daysLeft} day${G.weather.daysLeft !== 1 ? 's' : ''} left</div>
-      <div class="weather-effect">Prod ×${w.prod.toFixed(1)} &nbsp; Price ×${w.price.toFixed(1)}</div>
-    </div>
-  `;
-
-      // Staff sub
-      document.getElementById('staffSub').textContent = `${G.staff.length}/${G.maxStaff} employees · $${getPayroll()}/day payroll`;
-
-      // Fleet sub
-      const busy = G.trucks.filter(t => t.status === 'dispatched').length;
-      document.getElementById('fleetSub').textContent = `${G.trucks.length}/${G.maxTrucks} trucks · ${busy} on route`;
-
-      // Factory queue count
-      document.getElementById('queueCount').textContent = G.factoryQueue.length;
-
-      // Contract timer
-      const soonest = G.contracts.filter(c => !c.accepted).sort((a, b) => a.ticksLeft - b.ticksLeft)[0];
-      if (soonest) document.getElementById('contractTimer').textContent = `Next expires in ${Math.floor(soonest.ticksLeft / 60)}m ${soonest.ticksLeft % 60}s`;
+      // Header values
+      document.getElementById('headerCashCount').textContent = '$' + Math.floor(G.cash).toLocaleString();
+      document.getElementById('headerEggCount').textContent = Math.floor(G.inv.egg || 0).toLocaleString() + (G.invCap.egg ? '/' + G.invCap.egg : '');
 
       // Level Banner
-      document.getElementById('lbLevel').textContent = `Lv ${G.level || 1}`;
-      if (!G.levelReqs || G.levelReqs.length === 0) return;
+      document.getElementById('lbLevel').textContent = `LVL ${G.level || 1}`;
+      if (!G.levelReqs || G.levelReqs.length === 0) {
+        document.getElementById('levelProgressArea').style.display = 'none';
+        return;
+      }
+      document.getElementById('levelProgressArea').style.display = 'flex';
 
       const req = G.levelReqs[0];
       let currentVal = 0;
@@ -1939,139 +1046,245 @@
 
       document.getElementById('lbDesc').textContent = req.desc;
       const pct = Math.min(100, Math.floor((currentVal / req.amount) * 100));
-      document.getElementById('lbProgress').textContent = `${pct}%`;
+      document.getElementById('lbProgressText').textContent = `${currentVal} / ${req.amount}`;
+      document.getElementById('lbProgressBar').style.width = `${pct}%`;
     }
 
     function renderFarm() {
-      // Plots
-      const pg = document.getElementById('plotGrid');
-      pg.innerHTML = G.plots.map(plot => {
+      const se = SEASON_EFFECTS[G.season % 4];
+      const w = getCurrentWeather();
+      let html = `<div class="flex flex-col gap-6 pb-24">`;
+
+      // 1. Scenic Farmhouse Hero Header
+      html += `
+      <div class="relative h-48 w-full overflow-hidden shrink-0">
+        <!-- Grass/Sky Background -->
+        <div class="absolute inset-0 bg-gradient-to-b from-blue-300 to-green-400 dark:from-sky-900 dark:to-emerald-950">
+           <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 30px 30px;"></div>
+        </div>
+        
+        <!-- The Farmhouse -->
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-red-600 dark:bg-red-800 rounded-t-3xl border-x-8 border-t-8 border-red-900 dark:border-red-950 shadow-2xl flex flex-col items-center justify-end pb-4">
+           <!-- Roof Detail -->
+           <div class="absolute -top-10 left-0 right-0 h-10 bg-red-900 dark:bg-red-950 rounded-t-full flex items-center justify-center">
+              <div class="w-12 h-12 bg-white/10 rounded-full border border-white/20"></div>
+           </div>
+           <!-- Door -->
+           <div class="w-12 h-16 bg-red-950 rounded-t-lg border-t-4 border-amber-900/50 flex flex-col items-center pt-2">
+              <div class="size-2 bg-amber-500 rounded-full ml-6"></div>
+           </div>
+           <span class="absolute top-4 text-white/20 material-symbols-outlined text-6xl select-none">home</span>
+        </div>
+
+        <!-- Weather Overlay (Floating) -->
+        <div class="absolute right-4 top-4 z-10">
+           <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-white/50 dark:border-slate-700 flex items-center gap-3">
+              <span class="text-3xl">${w.icon}</span>
+              <div class="flex flex-col">
+                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${w.label}</span>
+                 <span class="text-xs font-black text-primary">${G.weather.daysLeft}d left</span>
+              </div>
+           </div>
+        </div>
+      </div>
+      `;
+
+      // 2. The Pasture Grid
+      html += `<div class="px-4 flex flex-col gap-5">`;
+
+      G.plots.forEach((plot, i) => {
         const def = PLOT_DEFS[plot.type];
-        if (!def) return '';
+        if (!def) return;
         const output = plot.stored || 0;
         const localCap = 100 * plot.level;
-        const pct = Math.min(100, output / localCap * 100);
-        const upgCost = Math.floor(80 * Math.pow(1.8, plot.level));
+        const pct = Math.min(100, (output / localCap) * 100);
+        const ratePerMin = (def.baseRate * plot.level * getProductionMultiplier() * getCoopSpeed() * getCoopBonus()).toFixed(1);
 
         if (!plot.unlocked) {
-          return `<div class="plot-card locked-plot" onclick="unlockPlot('${plot.id}')">
-        <div class="plot-label">LOCKED</div>
-        <div class="plot-name">${def.icon} ${def.name}</div>
-        <div class="plot-output" style="color:var(--gold)">Unlock: $${def.unlockCost}</div>
-        <button class="btn btn-gold btn-sm" style="margin-top:8px;width:100%" ${G.cash < def.unlockCost ? 'disabled' : ''}>Unlock $${def.unlockCost}</button>
-      </div>`;
+          // Locked Pasture Card
+          html += `
+          <div class="relative group overflow-hidden bg-slate-200 dark:bg-slate-800/50 rounded-3xl p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-between cursor-pointer active:scale-95 transition-all shadow-inner" onclick="unlockPlot('${plot.id}')">
+             <div class="flex items-center gap-4">
+                <div class="size-14 rounded-2xl bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-2xl grayscale">
+                   ${def.icon}
+                </div>
+                <div>
+                   <h4 class="text-sm font-black text-slate-400 uppercase tracking-tight">Locked Expansion</h4>
+                   <p class="text-[10px] font-bold text-slate-500 uppercase">Unlock ${def.name}</p>
+                </div>
+             </div>
+             <div class="bg-amber-500 text-black px-4 py-2 rounded-xl font-black text-xs shadow-lg shadow-amber-500/20">
+                $${def.unlockCost.toLocaleString()}
+             </div>
+          </div>
+          `;
+          return;
         }
 
-        const canAfford = G.cash >= upgCost && plot.level < def.maxLevel;
-        const starvationWarning = plot.starving ? `<span style="color:var(--red); font-size:0.85em; font-weight:bold;">⚠️ Needs Feed/Water!</span>` : '';
+        const isStarving = plot.starving;
+        const cardBg = plot.type === 'henCoop' ? 'bg-amber-50 dark:bg-amber-900/10' :
+          plot.type === 'feedFarm' ? 'bg-green-50 dark:bg-emerald-900/10' :
+            'bg-blue-50 dark:bg-sky-900/10';
 
-        return `<div class="plot-card ${plot.level > 0 ? 'active-plot' : ''}" onclick="harvestPlot('${plot.id}', event)">
-      <div class="plot-label">${def.icon} ${def.name.toUpperCase()}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div class="plot-name">Level ${plot.level}/${def.maxLevel}</div>
-        <span class="badge ${canAfford ? 'badge-gold' : 'badge-blue'}">+${(def.baseRate * plot.level * getProductionMultiplier() * getCoopSpeed() * getCoopBonus()).toFixed(1)}/min</span>
-      </div>
-      <div class="plot-output">${def.icon} ${Math.floor(output)} ready to harvest ${starvationWarning}</div>
-      <div class="plot-bar-wrap"><div class="progress"><div class="progress-fill green" style="width:${pct}%"></div></div></div>
-      <div style="font-size:0.65em; text-align:center; margin-top:4px; opacity:0.6; font-weight:bold;">TAP TO HARVEST</div>
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        ${plot.level < def.maxLevel ? `<button class="btn btn-gold btn-sm" style="flex:1" ${G.cash < upgCost ? 'disabled' : ''} onclick="event.stopPropagation(); upgradePlot('${plot.id}')">⬆️ $${upgCost}</button>` : `<span class="badge badge-green" style="padding:6px 10px;flex:1;text-align:center;">MAX</span>`}
-      </div>
-    </div>`;
-      }).join('');
+        html += `
+        <div class="relative group ${cardBg} rounded-[2rem] p-5 border-2 ${isStarving ? 'border-red-400 animate-pulse' : 'border-white dark:border-slate-800'} shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden active:scale-[0.98]" onclick="harvestPlot('${plot.id}', event)">
+          
+          <!-- Environmental Texture -->
+          <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0); background-size: 24px 24px;"></div>
 
-      // Supply chain
-      document.getElementById('supplyChain').innerHTML = `
-    <div class="card" style="margin:0 10px 10px;">
-      <div style="font-family:'Syne',sans-serif;font-size:.85em;font-weight:700;color:var(--text2);margin-bottom:10px;">Supply Flow</div>
-      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:.78em;color:var(--text2);">
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--border);">🌾 Feed ${Math.floor(G.inv.feedWheat || 0)}</span>
-        <span style="color:var(--border2);font-size:1.2em;">→</span>
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--border);">💧 Water ${Math.floor(G.inv.water || 0)}</span>
-        <span style="color:var(--border2);font-size:1.2em;">→</span>
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--green2);">🐔 Coop</span>
-        <span style="color:var(--border2);font-size:1.2em;">→</span>
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--gold2);">🥚 ${Math.floor(G.inv.egg || 0)} eggs</span>
-        <span style="color:var(--border2);font-size:1.2em;">→</span>
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--blue2);">🏭 Factory</span>
-        <span style="color:var(--border2);font-size:1.2em;">→</span>
-        <span style="background:var(--surface2);border-radius:20px;padding:4px 10px;border:1px solid var(--purple);">💰 Revenue</span>
-      </div>
-      <div style="margin-top:8px;font-size:.72em;color:var(--text3);">
-        Prod mult: ×${getProductionMultiplier().toFixed(2)} &nbsp;·&nbsp; 
-        Price mult: ×${getPriceMultiplier().toFixed(2)} &nbsp;·&nbsp;
-        Factory speed: ×${getFactorySpeed().toFixed(2)}
-      </div>
-    </div>`;
+          <div class="relative z-10 flex items-start justify-between mb-4">
+             <div class="flex items-center gap-4">
+                <div class="relative size-16 rounded-2xl bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center text-4xl border border-slate-100 dark:border-slate-700">
+                   ${def.icon}
+                   ${isStarving ? `<div class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full size-6 flex items-center justify-center shadow-lg text-[10px] font-black border-2 border-white">!</div>` : ''}
+                </div>
+                <div>
+                   <div class="flex items-center gap-2 mb-0.5">
+                      <h4 class="text-base font-black text-slate-800 dark:text-white leading-none">${def.name}</h4>
+                      <span class="text-[10px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest leading-none">Lv ${plot.level}</span>
+                   </div>
+                   <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px] text-green-500">trending_up</span>
+                      ${ratePerMin}/min production
+                   </p>
+                </div>
+             </div>
+             
+             <div class="text-right">
+                <span class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Stockpile</span>
+                <span class="text-xl font-black text-slate-800 dark:text-white">${Math.floor(output)}</span>
+             </div>
+          </div>
 
-      // Upgrades
-      document.getElementById('farmUpgrades').innerHTML = FARM_UPGRADES.map(u => {
-        const count = G.upgrades[u.id] || 0;
-        const cost = Math.floor(u.cost * Math.pow(1.6, count));
-        const maxed = count >= u.max;
-        const can = !maxed && G.cash >= cost;
-        return `<div class="card" style="margin:0 10px 8px;">
-      <div class="card-row">
-        <div style="font-size:1.8em;">${u.icon}</div>
-        <div style="flex:1;">
-          <div style="font-size:.85em;font-weight:700;color:var(--text);">${u.name} ${count > 0 ? `(${count}/${u.max})` : ''}</div>
-          <div style="font-size:.7em;color:var(--text2);margin-top:2px;">${u.desc}</div>
+          <!-- Large Progress Bar -->
+          <div class="relative h-6 w-full bg-black/5 dark:bg-white/5 rounded-2xl p-1 overflow-hidden border border-black/5 dark:border-white/5">
+             <div class="h-full rounded-xl transition-all duration-500 flex items-center justify-center relative overflow-hidden ${pct >= 100 ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : 'bg-primary'}" style="width: ${pct}%">
+                <!-- Shine effect -->
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+             </div>
+             <!-- Percentage label overlay -->
+             <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-[10px] font-black uppercase tracking-widest ${pct > 50 ? 'text-white' : 'text-slate-500'} transition-colors">${Math.floor(pct)}% Full</span>
+             </div>
+          </div>
+
+          <!-- Conditional CTA -->
+          <div class="mt-3 flex justify-between items-center h-4">
+             <p class="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest">
+                ${isStarving ? '<span class="text-red-500">⚠️ Needs Resources</span>' : '✅ Operational'}
+             </p>
+             ${pct >= 20 ? `<span class="text-[10px] font-black text-primary animate-bounce uppercase tracking-widest">TAP TO HARVEST</span>` : ''}
+          </div>
         </div>
-        <button class="btn ${can ? 'btn-gold' : 'btn-ghost'} btn-sm" ${maxed || !can ? 'disabled' : ''} onclick="buyFarmUpgrade('${u.id}')">
-          ${maxed ? '✓ Max' : `$${cost.toLocaleString()}`}
-        </button>
-      </div>
-    </div>`;
-      }).join('');
+        `;
+      });
+
+      html += `</div>`; // Close pasture grid
+
+      // 3. Floating Quick-Action or Status Bar
+      const hasAutoCollect = G.upgrades.autoCollect || G.staff.some(s => s.skill === 'autoHarvest');
+      if (!hasAutoCollect) {
+        html += `
+          <button class="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 group" onclick="G.plots.forEach(p=>{if(p.unlocked && p.level>0) harvestPlot(p.id, null, false);})">
+            <div class="relative size-16 bg-primary rounded-full shadow-[0_12px_30px_rgba(236,91,19,0.5)] border-4 border-white dark:border-slate-800 flex items-center justify-center text-white active:scale-90 transition-transform duration-200">
+               <span class="material-symbols-outlined text-4xl">touch_app</span>
+               <!-- Ripple Rings -->
+               <div class="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-20 scale-150"></div>
+            </div>
+          </button>
+          `;
+      } else {
+        html += `
+          <div class="fixed bottom-28 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md px-6 py-3 rounded-full shadow-2xl border border-primary/30">
+            <span class="material-symbols-outlined text-primary text-2xl animate-spin-slow">autorenew</span>
+            <div class="flex flex-col -space-y-1">
+               <span class="text-[10px] font-black uppercase tracking-widest text-primary">Auto Mode</span>
+               <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Collecting Goods...</span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `</div>`; // Close scrollable container
+
+      const container = document.getElementById('farmRenderContainer');
+      if (container) container.innerHTML = html;
     }
+
 
     function renderFactory() {
       // Inventory
       const allGoods = Object.entries(G.inv).filter(([k, v]) => v > 0.1 && !['feedWheat', 'feedCorn', 'water'].includes(k));
-      document.getElementById('inventoryDisplay').innerHTML = allGoods.length === 0 ?
-        `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No goods yet — start the coops!</div>` :
-        `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 10px 10px;">${allGoods.map(([k, v]) => `<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-size:.78em;font-weight:700;"><span style="opacity:.7;">${k}</span> <span style="color:var(--gold)">${Math.floor(v)}</span></div>`).join('')
-        }</div>`;
+      let html = `<div class="p-4 flex flex-col gap-6">`;
+
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Your Stock</h3>`;
+      if (allGoods.length === 0) {
+        html += `<div class="bg-white dark:bg-slate-800 rounded-2xl p-4 text-center shadow-sm border border-dashed border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-400">No goods yet — start the coops!</div>`;
+      } else {
+        html += `<div class="flex flex-wrap gap-2">`;
+        html += allGoods.map(([k, v]) => `<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg px-3 py-1.5 flex items-center gap-2"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">${k}</span><span class="text-xs font-black text-primary">${Math.floor(v)}</span></div>`).join('');
+        html += `</div>`;
+      }
+      html += `</div>`;
+
+      // Queue
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-2 px-1">Processing Queue (${G.factoryQueue.length}/${G.factorySlots} Slots)</h3>`;
+      if (G.factoryQueue.length === 0) {
+        html += `<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-sm border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-400">Queue empty — add recipes below</div>`;
+      } else {
+        html += `<div class="flex flex-col gap-2">`;
+        html += G.factoryQueue.map((j, i) => {
+          const active = i < G.factorySlots;
+          const pct = Math.min(100, (j.progress || 0) * 100);
+          return `
+           <div class="bg-white dark:bg-slate-800 rounded-xl p-3 shadow-sm border ${active ? 'border-primary/50' : 'border-slate-200 dark:border-slate-700'} flex items-center gap-3">
+              <div class="text-2xl">${j.icon}</div>
+              <div class="flex-1">
+                 <h4 class="text-[11px] font-bold text-slate-800 dark:text-white mb-1.5">${j.name}</h4>
+                 <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                 </div>
+              </div>
+              <div class="text-[10px] font-black w-8 text-right ${active ? 'text-primary' : 'text-slate-400'}">
+                 ${active ? `${Math.floor((1 - j.progress) * j.totalTime / getFactorySpeed())}s` : '⏳'}
+              </div>
+           </div>`;
+        }).join('');
+        html += `</div>`;
+      }
+      html += `</div>`;
 
       // Recipes
       const factLevel = G.factoryLevel || 1;
-      document.getElementById('recipeList').innerHTML = RECIPES.filter(r => r.unlockLevel <= factLevel).map(r => {
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1 mt-2">Available Recipes (Level ${factLevel})</h3>`;
+      html += `<div class="flex flex-col gap-3">`;
+      html += RECIPES.filter(r => r.unlockLevel <= factLevel).map(r => {
         const canMake = Object.entries(r.inputs).every(([k, v]) => (G.inv[k] || 0) >= v);
-        return `<div class="recipe-card">
-      <div class="recipe-header">
-        <div class="recipe-icon">${r.icon}</div>
-        <div class="recipe-meta">
-          <div class="recipe-name">${r.name}</div>
-          <div class="recipe-profit">→ ${r.qty}× ${r.output} · ~$${(r.qty * r.sellPrice * getPriceMultiplier()).toFixed(0)} · ${r.time}s</div>
-        </div>
-        <button class="btn ${canMake ? 'btn-green' : 'btn-ghost'} btn-sm" ${canMake ? '' : 'disabled'} onclick="queueRecipe('${r.id}')">Queue</button>
-      </div>
-      <div class="recipe-ingredients">
-        ${Object.entries(r.inputs).map(([k, v]) => {
+        return `
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+            <div class="flex items-start gap-4">
+                <div class="size-12 rounded-xl bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center text-3xl shadow-inner flex-shrink-0">${r.icon}</div>
+                <div class="flex-1">
+                   <h4 class="text-sm font-bold text-slate-800 dark:text-white line-clamp-1 mb-0.5">${r.name}</h4>
+                   <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Yields: ${r.qty}x ${r.output} · ${r.time}s</p>
+                   <p class="text-[10px] text-green-600 font-black uppercase tracking-wider">Value: ~$${(r.qty * r.sellPrice * getPriceMultiplier()).toFixed(0)}</p>
+                </div>
+                <button class="px-4 py-2 ${canMake ? 'bg-primary hover:bg-orange-600 text-white shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'} rounded-lg text-[10px] font-black uppercase transition-all" ${!canMake ? 'disabled' : ''} onclick="queueRecipe('${r.id}')">Queue</button>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-700 flex flex-wrap gap-1.5">
+               ${Object.entries(r.inputs).map(([k, v]) => {
           const have = Math.floor(G.inv[k] || 0);
-          return `<div class="ingr-chip ${have >= v ? 'ok' : 'short'}">${k} ×${v} (${have})</div>`;
+          const ok = have >= v;
+          return `<span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase ${ok ? 'bg-green-50 text-green-700 dark:bg-green-900/30' : 'bg-red-50 text-red-600 dark:bg-red-900/30'}">${k} ${have}/${v}</span>`;
         }).join('')}
-      </div>
-    </div>`;
-      }).join('');
-
-      // Queue
-      const qd = document.getElementById('factoryQueueDisplay');
-      if (G.factoryQueue.length === 0) {
-        qd.innerHTML = `<div class="card" style="margin:0 10px;"><div style="font-size:.8em;color:var(--text3);text-align:center;padding:8px 0;">Queue empty — add recipes above</div></div>`;
-      } else {
-        qd.innerHTML = `<div class="factory-queue">${G.factoryQueue.map((j, i) => {
-          const active = i < G.factorySlots;
-          const pct = Math.min(100, (j.progress || 0) * 100);
-          return `<div class="queue-item">
-          <span>${j.icon}</span>
-          <span style="flex:1;font-size:.82em;">${j.name}</span>
-          ${active ? `<div class="progress" style="width:80px;flex-shrink:0;"><div class="progress-fill gold" style="width:${pct}%"></div></div>` : `<span style="font-size:.7em;color:var(--text3);">Queued</span>`}
-          <span class="queue-timer">${active ? `${Math.floor((1 - j.progress) * j.totalTime / getFactorySpeed())}s` : '⏳'}</span>
+            </div>
         </div>`;
-        }).join('')
-          }</div>`;
-      }
+      }).join('');
+      html += `</div></div>`;
+      html += `</div>`;
+
+      const fc = document.getElementById('factoryRenderContainer');
+      if (fc) fc.innerHTML = html;
     }
 
     function renderMarket() {
@@ -2082,42 +1295,59 @@
         { name: 'Cake', price: 37 }, { name: 'Custard', price: 18 }, { name: 'Vaccine', price: 200 },
       ];
       const mult = getPriceMultiplier();
+      let html = `<div class="p-4 pb-20 flex flex-col gap-6">`;
+
+      // Ticker Header
       const tickerItems = [...goods, ...goods].map(g => {
         const p = (g.price * mult).toFixed(2);
         const up = Math.random() > 0.5;
-        return `<div class="ticker-item"><span>${g.name}</span><span class="${up ? 'price-up' : 'price-dn'}">${up ? '▲' : '▼'} $${p}</span></div>`;
+        return `<div class="inline-flex items-center gap-1 mx-4 whitespace-nowrap"><span class="text-xs font-bold text-slate-400">${g.name}</span><span class="text-xs font-black ${up ? 'text-green-500' : 'text-red-500'}">${up ? '▲' : '▼'} $${p}</span></div>`;
       }).join('');
-      document.getElementById('priceTicker').innerHTML = `<div class="ticker-row">${tickerItems}</div>`;
+
+      html += `
+      <div class="bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-700 p-3">
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider mb-2">Live Market Rates</p>
+          <div class="flex overflow-hidden relative w-full">
+             <div class="animate-[marquee_20s_linear_infinite] whitespace-nowrap flex">${tickerItems}</div>
+          </div>
+      </div>
+      <style>@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }</style>
+      `;
 
       // Contracts
       const activeContracts = G.contracts.filter(c => !c.accepted);
-      const cl = document.getElementById('contractList');
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Active Contracts</h3>`;
       if (activeContracts.length === 0) {
-        cl.innerHTML = `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No active contracts. Click ↻ Refresh to get new ones ($50).</div>`;
+        html += `<div class="bg-white dark:bg-slate-800 rounded-2xl p-6 text-center shadow-sm border border-slate-200 dark:border-slate-700"><p class="text-xs font-bold text-slate-400">No active contracts. Refresh to get new ones.</p></div>`;
       } else {
-        cl.innerHTML = activeContracts.map(c => {
+        html += `<div class="flex flex-col gap-3">`;
+        html += activeContracts.map(c => {
           const have = Math.floor(G.inv[c.want] || 0);
           const canFill = have >= c.qty;
           const earn = Math.floor(c.qty * c.pricePerUnit * mult);
           const timeLeft = Math.floor(c.ticksLeft / 60);
-          return `<div class="contract-card ${c.urgent ? 'urgent' : ''} ${c.lucrative ? 'lucrative' : ''}">
-        <div class="con-icon">${c.buyer.split(' ')[0]}</div>
-        <div class="con-info">
-          <div class="con-name">${c.buyer.split(' ').slice(1).join(' ')}</div>
-          <div class="con-detail">Wants: <b>${c.qty}× ${c.want}</b> &nbsp;·&nbsp; You have: ${have}
-          ${c.urgent ? '&nbsp;<span class="badge badge-gold">URGENT</span>' : ''} ${c.lucrative ? '&nbsp;<span class="badge badge-green">LUCRATIVE</span>' : ''}</div>
-          <div class="con-reward">Pay: $${earn} &nbsp;·&nbsp; Expires: ${timeLeft}m</div>
-        </div>
-        <div class="con-action">
-          <button class="btn ${canFill ? 'btn-green' : 'btn-ghost'} btn-sm" ${canFill ? '' : 'disabled'} onclick="acceptContract('${c.id}')">
-            ${canFill ? 'Fill →' : `Short ${c.qty - have}`}
-          </button>
-        </div>
-      </div>`;
+          return `
+          <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border ${c.urgent ? 'border-amber-400 dark:border-amber-600' : 'border-slate-200 dark:border-slate-700'} relative overflow-hidden flex items-start gap-4">
+              <div class="text-3xl">${c.buyer.split(' ')[0]}</div>
+              <div class="flex-1">
+                 <h4 class="text-sm font-bold text-slate-800 dark:text-white">${c.buyer.split(' ').slice(1).join(' ')}</h4>
+                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Needs: <span class="text-primary">${c.qty} ${c.want}</span> · Have: ${have}</p>
+                 <div class="flex flex-wrap gap-2 mb-3">
+                    <span class="text-[9px] font-black bg-green-50 text-green-600 px-2 py-0.5 rounded uppercase">Pay: $${earn}</span>
+                    <span class="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase line-clamp-1">${timeLeft}m left</span>
+                    ${c.urgent ? `<span class="text-[9px] font-black bg-amber-50 text-amber-600 px-2 py-0.5 rounded uppercase shadow-sm">Urgent</span>` : ''}
+                 </div>
+                 <button class="w-full py-2 ${canFill ? 'bg-green-500 hover:bg-green-600 text-white shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'} rounded-lg text-xs font-black transition-all uppercase tracking-wider" ${!canFill ? 'disabled' : ''} onclick="acceptContract('${c.id}')">
+                    ${canFill ? 'Fulfill Contract' : `Need ${c.qty - have} more`}
+                 </button>
+              </div>
+          </div>`;
         }).join('');
+        html += `</div>`;
       }
+      html += `</div>`;
 
-      // Spot market
+      // Spot Market
       const spotGoods = [
         { id: 'egg', icon: '🥚', name: 'Raw Eggs', price: 2.2 },
         { id: 'freeRange', icon: '🐓', name: 'Free Range', price: 5.5 },
@@ -2129,146 +1359,362 @@
         { id: 'custard', icon: '🍮', name: 'Custard', price: 18 },
         { id: 'vaccine', icon: '💉', name: 'Protein Serum', price: 200 },
       ];
-      document.getElementById('spotMarket').innerHTML = spotGoods.map(g => {
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1 mt-2">Spot Market</h3>`;
+      html += `<div class="grid grid-cols-2 gap-3">`;
+      html += spotGoods.map(g => {
         const avail = Math.floor(G.inv[g.id] || 0);
         const price = (g.price * mult).toFixed(2);
         const sellAll = avail > 0;
-        return `<div class="card" style="margin:0 10px 8px;">
-      <div class="card-row">
-        <div style="font-size:1.8em;">${g.icon}</div>
-        <div style="flex:1;">
-          <div style="font-size:.85em;font-weight:700;color:var(--text);">${g.name}</div>
-          <div style="font-size:.72em;color:var(--text2);">$${price}/unit &nbsp;·&nbsp; Stock: ${avail}</div>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost btn-sm" ${avail < 10 ? 'disabled' : ''} onclick="sellSpot('${g.id}',10)">-10</button>
-          <button class="btn ${sellAll ? 'btn-gold' : 'btn-ghost'} btn-sm" ${!sellAll ? 'disabled' : ''} onclick="sellSpot('${g.id}',${avail})">All $${Math.floor(avail * g.price * mult)}</button>
-        </div>
-      </div>
-    </div>`;
+        return `
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center text-center">
+            <div class="size-12 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center text-2xl mb-2">${g.icon}</div>
+            <h4 class="text-xs font-bold text-slate-800 dark:text-white line-clamp-1">${g.name}</h4>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-2">$${price}/u · Stock: ${avail}</p>
+            <div class="flex gap-1.5 w-full mt-auto">
+               <button class="flex-1 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 rounded font-black text-[10px] uppercase transition-colors" ${avail < 10 ? 'disabled' : ''} onclick="sellSpot('${g.id}',10)">-10</button>
+               <button class="flex-[2] py-1.5 ${sellAll ? 'bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'} rounded font-black text-[10px] uppercase transition-colors" ${!sellAll ? 'disabled' : ''} onclick="sellSpot('${g.id}',${avail})">All $${Math.floor(avail * g.price * mult)}</button>
+            </div>
+        </div>`;
       }).join('');
+      html += `</div></div>`;
+      html += `</div>`;
+
+      const tc = document.getElementById('marketRenderContainer');
+      if (tc) tc.innerHTML = html;
+    }
+
+    function renderFarmUpgrades() {
+      let html = `<div class="p-4"><div class="flex flex-col gap-3">`;
+      html += FARM_UPGRADES.map(u => {
+        const count = G.upgrades[u.id] || 0;
+        const cost = Math.floor(u.cost * Math.pow(1.6, count));
+        const maxed = count >= u.max;
+        const pct = Math.min(100, (count / u.max) * 100);
+        const can = !maxed && G.cash >= cost;
+
+        return `
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden group hover:border-primary/30 transition-colors">
+          ${maxed ? `<div class="absolute top-0 right-0 w-12 h-12 overflow-hidden z-0">
+               <div class="bg-primary text-white text-[8px] font-bold py-1 w-[200%] text-center absolute -right-6 top-2 rotate-45 shadow-md">MAX</div>
+            </div>` : ''}
+
+          <div class="flex gap-4 relative z-10">
+            <div class="size-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900 flex items-center justify-center text-2xl shadow-inner flex-shrink-0">
+              ${u.icon}
+            </div>
+
+            <div class="flex-1">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-800 dark:text-white">${u.name}</h3>
+                  <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">${u.desc}</p>
+                </div>
+              </div>
+
+              <div class="mt-3 flex items-center gap-3">
+                <div class="flex-1">
+                  <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
+                    <span>Level ${count}</span>
+                    <span>Max ${u.max}</span>
+                  </div>
+                  <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Area -->
+          <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center relative z-10">
+            <div class="flex items-center gap-1.5 ${maxed ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'} font-black text-sm">
+              ${!maxed ? `
+                      <span class="material-symbols-outlined text-[16px] text-green-500">payments</span>
+                      $${cost.toLocaleString()}
+                    ` : `<span class="text-xs uppercase tracking-wider">Fully Upgraded</span>`}
+            </div>
+            <button class="px-4 py-1.5 ${can ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'} rounded-lg text-xs font-bold transition-transform" ${maxed || !can ? 'disabled' : ''} onclick="buyFarmUpgrade('${u.id}')">
+              ${maxed ? 'Maxed' : 'Upgrade'}
+            </button>
+          </div>
+        </div>
+        `;
+      }).join('');
+      html += `</div></div>`;
+      document.getElementById('upgradesRenderContainer').innerHTML = html;
     }
 
     function renderStaff() {
-      // Morale summary
       const avgMorale = G.staff.length ? Math.round(G.staff.reduce((a, s) => a + (s.morale || 100), 0) / G.staff.length) : 100;
-      document.getElementById('staffMorale').innerHTML = `<div class="card" style="margin:10px 10px 0;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div style="font-size:.8em;font-weight:700;color:var(--text2);">Team Morale</div>
-      <span class="badge ${avgMorale > 70 ? 'badge-green' : avgMorale > 40 ? 'badge-gold' : 'badge-red'}">${avgMorale}%</span>
-    </div>
-    <div class="progress"><div class="progress-fill ${avgMorale > 70 ? 'green' : avgMorale > 40 ? 'gold' : 'red'}" style="width:${avgMorale}%"></div></div>
-    <div style="font-size:.7em;color:var(--text3);margin-top:5px;">Happy staff = higher bonuses. Pay on time!</div>
-  </div>`;
+      let html = `<div class="p-4">`;
 
-      // Staff list
-      const sl = document.getElementById('staffList');
-      if (G.staff.length === 0) {
-        sl.innerHTML = `<div style="padding:14px;font-size:.82em;color:var(--text3);text-align:center;">No staff yet. Hire your first employee!</div>`;
-      } else {
-        sl.innerHTML = G.staff.map(s => `<div class="staff-card">
-      <div class="staff-header">
-        <div class="staff-avatar">${s.icon}</div>
-        <div class="staff-info">
-          <div class="staff-name">${s.name}</div>
-          <div class="staff-role">${s.bonus}</div>
-          <div class="staff-skill">+${(s.value * 100).toFixed(0)}% ${s.skill.replace(/([A-Z])/g, ' $1').toLowerCase()}</div>
-        </div>
+      // Morale summary card
+      html += `
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 mb-6 shadow-lg shadow-indigo-500/20 text-white relative overflow-hidden">
+          <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mt-10 -mr-10"></div>
+          <div class="flex justify-between items-end mb-2 relative z-10">
+              <div>
+                  <h3 class="text-sm font-bold opacity-90">Team Morale</h3>
+                  <p class="text-[10px] opacity-75 font-bold uppercase tracking-wider mt-0.5">High morale = Better bonuses</p>
+              </div>
+              <div class="text-2xl font-black">${avgMorale}%</div>
+          </div>
+          <div class="h-2 w-full bg-black/20 rounded-full overflow-hidden relative z-10 mt-2">
+              <div class="h-full bg-white/90 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)] shadow-inner transition-all duration-300" style="width: ${avgMorale}%"></div>
+          </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:.65em;color:var(--text3);margin-bottom:2px;">MORALE</div>
-          <div class="morale-bar"><div class="morale-fill" style="width:${s.morale || 100}%"></div></div>
+        `;
+
+      // Active Bonuses
+      if (G.staff.length > 0) {
+        html += `
+        <div class="mb-6">
+            <h3 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 px-1">Active Staff Bonuses</h3>
+            <div class="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+              ${G.staff.map(s => {
+          let val = (s.value * 100 * (G.staff.some(x => x.skill === 'megaBonus') ? 1.2 : 1)).toFixed(0);
+          return `
+                 <div class="flex-shrink-0 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-3 py-2 flex items-center gap-2">
+                    <span class="text-lg">${s.icon}</span>
+                     <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">${s.skill.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <span class="text-xs font-black text-green-600 dark:text-green-400">+${val}% Boost</span>
+                     </div>
+                 </div>`;
+        }).join('')}
+            </div>
         </div>
-        <span class="salary-tag">$${s.salary}/day</span>
-        <button class="btn btn-ghost btn-sm" onclick="fireStaff('${s.id}')">Fire</button>
-      </div>
-    </div>`).join('');
+        `;
       }
 
-      // Bonuses active
-      const activeBonuses = G.staff.map(s =>
-        `<div class="card" style="margin:0 10px 6px;padding:10px 14px;">
-      <div style="display:flex;align-items:center;gap:8px;font-size:.8em;">
-        <span>${s.icon}</span>
-        <span style="color:var(--green);font-weight:700;">+${(s.value * 100 * (G.staff.some(x => x.skill === 'megaBonus') ? 1.2 : 1)).toFixed(0)}%</span>
-        <span style="color:var(--text2);">${s.skill.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+      // Staff List Header & Add Button
+      html += `
+        <div class="flex justify-between items-end mb-3 px-1">
+          <div>
+              <h3 class="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Your Team (${G.staff.length}/${G.maxStaff})</h3>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">$${getPayroll()}/day total payroll</p>
+          </div>
+          <button class="bg-primary text-white size-8 rounded-full shadow-md shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform" onclick="openHireModal()">
+              <span class="material-symbols-outlined text-[20px]">person_add</span>
+          </button>
       </div>
-    </div>`
-      );
-      document.getElementById('bonusList').innerHTML = activeBonuses.length ?
-        activeBonuses.join('') :
-        `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No bonuses active — hire staff to unlock.</div>`;
+        `;
+
+      // Staff Grid
+      html += `<div class="grid grid-cols-2 gap-3 pb-8">`;
+      if (G.staff.length === 0) {
+        html += `<div class="col-span-2 text-center text-sm font-bold text-slate-400 py-8 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">No staff hired yet.</div>`;
+      } else {
+        html += G.staff.map(s => `
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm relative group hover:-translate-y-1 transition-transform">
+            <!-- Fire button (hidden by default, shown on hover/focus within group) -->
+            <button class="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md border-2 border-white dark:border-slate-800 md:opacity-0 group-hover:opacity-100 transition-opacity z-10" onclick="fireStaff('${s.id}')">
+                <span class="material-symbols-outlined text-[12px]">close</span>
+            </button>
+            <div class="flex flex-col items-center text-center">
+                <div class="size-12 bg-slate-50 dark:bg-slate-700/50 rounded-full flex items-center justify-center text-3xl mb-2 shadow-inner">
+                    ${s.icon}
+                </div>
+                <h4 class="text-sm font-bold text-slate-800 dark:text-white capitalize">${s.name}</h4>
+                <p class="text-[9px] font-bold text-primary uppercase tracking-wider mt-0.5">${s.bonus}</p>
+                <div class="mt-2 text-[10px] font-black text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg">
+                    $${s.salary}/day
+                </div>
+            </div>
+            
+            <div class="mt-3 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-lg p-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Morale</span>
+                    <span class="text-[9px] font-bold ${s.morale > 70 ? 'text-green-500' : s.morale > 40 ? 'text-amber-500' : 'text-red-500'}">${s.morale || 100}%</span>
+                </div>
+                <div class="h-1 w-full bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
+                    <div class="h-full ${s.morale > 70 ? 'bg-green-500' : s.morale > 40 ? 'bg-amber-500' : 'bg-red-500'} rounded-full transition-all duration-300" style="width: ${s.morale || 100}%"></div>
+                </div>
+            </div>
+        </div>
+        `).join('');
+      }
+      html += `</div></div>`;
+
+      document.getElementById('upgradesRenderContainer').innerHTML = html;
     }
 
     function renderTrucks() {
-      // Truck list
-      const tl = document.getElementById('truckList');
-      if (G.trucks.length === 0) {
-        tl.innerHTML = `<div class="card" style="margin:0 10px;"><div style="font-size:.82em;color:var(--text3);text-align:center;padding:12px 0;">No trucks yet. Buy your first truck!</div></div>`;
-      } else {
-        tl.innerHTML = G.trucks.map(t => {
-          const pct = t.status === 'dispatched' ? Math.min(100, (t.tripProgress || 0) * 100) : 0;
-          const route = ROUTES.find(r => r.id === t.currentRoute);
-          const tDef = TRUCK_TYPES.find(x => x.id === t.type);
-          return `<div class="truck-track">
-        <div class="truck-row">
-          <div class="truck-icon">${tDef?.icon || '🚚'}</div>
-          <div class="truck-info">
-            <div class="truck-name">${t.name}</div>
-            <div class="truck-status">${t.status === 'dispatched' ? `Delivering ${t.load} units → ${route?.name} (${Math.floor((1 - t.tripProgress) * t.tripTime)}s)` : `Idle · Cap ${t.cap} units`}</div>
-          </div>
-          <span class="badge ${t.status === 'dispatched' ? 'badge-gold' : 'badge-green'}">${t.status === 'dispatched' ? 'En Route' : 'Ready'}</span>
-        </div>
-        ${t.status === 'dispatched' ? `<div class="progress" style="margin-top:4px;"><div class="progress-fill gold" style="width:${pct}%"></div></div>` : ''}
-        ${t.status === 'idle' ? `<div style="display:flex;gap:6px;margin-top:8px;">${ROUTES.filter(r => tDef?.routes?.includes(r.id)).map(r =>
-            `<button class="btn btn-ghost btn-sm" onclick="dispatchTruck('${t.id}','${r.id}')">${r.icon} ${r.name}</button>`
-          ).join('')
-              }</div>` : ''}
-      </div>`;
-        }).join('');
-      }
+      // Truck Depot Hero Stats
+      const busyCount = G.trucks.filter(t => t.status === 'dispatched').length;
+      const totalCap = G.trucks.reduce((acc, t) => acc + t.cap, 0);
+      const activeCap = G.trucks.filter(t => t.status === 'dispatched').reduce((acc, t) => acc + t.load, 0);
 
-      // Routes info
-      document.getElementById('routeList').innerHTML = ROUTES.map(r => `
-    <div class="card" style="margin:0 10px 8px;">
-      <div class="card-row">
-        <div style="font-size:1.6em;">${r.icon}</div>
-        <div style="flex:1;">
-          <div style="font-size:.85em;font-weight:700;color:var(--text);">${r.name}</div>
-          <div style="font-size:.72em;color:var(--text2);">Distance: ${r.dist}x &nbsp;·&nbsp; Volume: ${r.vol}</div>
+      let html = `<div class="p-4 flex flex-col gap-6">`;
+
+      html += `
+        <!-- Hero Stats -->
+          <div class="bg-slate-900 rounded-3xl p-5 shadow-xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-blue-500/10" style="background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0); background-size: 20px 20px;"></div>
+            <!-- Decorative Truck shape -->
+            <div class="absolute right-0 bottom-0 text-white/5 pointer-events-none -mr-4 -mb-4">
+              <span class="material-symbols-outlined text-[120px]">local_shipping</span>
+            </div>
+
+            <div class="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <h2 class="text-white font-black text-lg">Truck Depot</h2>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mt-1">Manage Deliveries</p>
+              </div>
+              <button class="bg-amber-500 text-black px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-transform flex items-center gap-1" onclick="openBuyTruckModal()">
+                <span class="material-symbols-outlined text-sm">add</span> Fleet ${G.trucks.length}/${G.maxTrucks}
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 relative z-10 text-white">
+              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                <div class="text-xs text-slate-300 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm text-blue-400">route</span> Routes Active
+                </div>
+                <div class="text-xl font-black">${busyCount} <span class="text-xs text-slate-400">/ ${G.trucks.length}</span></div>
+              </div>
+              <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                <div class="text-xs text-slate-300 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm text-amber-400">inventory_2</span> Volume en route
+                </div>
+                <div class="text-xl font-black">${activeCap} <span class="text-xs text-slate-400">/ ${totalCap} max</span></div>
+              </div>
+            </div>
+          </div>
+      `;
+
+      // Truck Fleet Group (Active Trucks)
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Your Fleet</h3>`;
+
+      if (G.trucks.length === 0) {
+        html += `<div class="text-center text-sm font-bold text-slate-400 py-8 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">No trucks in fleet. Buy one above!</div>`;
+      } else {
+        html += `<div class="flex flex-col gap-3">`;
+        G.trucks.forEach(t => {
+          const tDef = TRUCK_TYPES.find(x => x.id === t.type);
+          const iconStr = tDef?.icon || '🚚';
+
+          if (t.status === 'dispatched') {
+            const pct = Math.min(100, (t.tripProgress || 0) * 100);
+            const route = ROUTES.find(r => r.id === t.currentRoute);
+            html += `
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-blue-200 dark:border-blue-900/50 shadow-sm relative overflow-hidden">
+                <div class="flex items-center gap-4 mb-3 relative z-10">
+                    <div class="size-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 flex items-center justify-center text-2xl shadow-inner flex-shrink-0">
+                        ${iconStr}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-white capitalize leading-tight">${t.name}</h4>
+                            <span class="text-[9px] font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md uppercase tracking-wider border border-blue-200 dark:border-blue-800/50">En Route</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Delivering ${t.load}x goods → ${route?.name}</p>
+                    </div>
+                </div>
+                <!-- Progress Line -->
+                <div class="relative z-10">
+                  <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+                    <span>FarmHQ</span>
+                    <span class="text-blue-600 dark:text-blue-400">${Math.floor((1 - t.tripProgress) * t.tripTime)}s left</span>
+                  </div>
+                  <div class="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full transition-all duration-300 relative" style="width: ${pct}%">
+                      <div class="absolute inset-0 bg-white/20 w-1/2 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+        `;
+          } else {
+            // Idle Truck
+            const availRoutes = ROUTES.filter(r => tDef?.routes?.includes(r.id));
+            html += `
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="size-12 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 flex items-center justify-center text-2xl shadow-inner flex-shrink-0 grayscale">
+                        ${iconStr}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="text-sm font-bold text-slate-800 dark:text-white capitalize leading-tight">${t.name}</h4>
+                            <span class="text-[9px] font-black text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded-md uppercase tracking-wider border border-green-200 dark:border-green-800/50">Ready</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Cap: ${t.cap} units</p>
+                    </div>
+                </div>
+                
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Dispatch Route:</p>
+                    <div class="flex flex-wrap gap-2">
+                      ${availRoutes.map(r => `
+                        <button class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-[10px] font-bold transition-colors active:scale-95 border border-slate-200 dark:border-slate-700" onclick="dispatchTruck('${t.id}','${r.id}')">
+                            <span class="text-sm">${r.icon}</span> ${r.name}
+                        </button>
+                      `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+          }
+        });
+        html += `</div>`;
+      }
+      html += `</div>`;
+
+      // Available Delivery Routes Catalog
+      html += `<div><h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Available Routes Info</h3>`;
+      html += `<div class="grid grid-cols-2 gap-3 pb-8">`;
+      html += ROUTES.map(r => `
+        <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+          <div class="size-10 mx-auto rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center text-xl mb-2">${r.icon}</div>
+          <h4 class="text-xs font-bold text-slate-800 dark:text-white">${r.name}</h4>
+          <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-2">Dist: ${r.dist}x · Vol: ${r.vol}</p>
+          <div class="text-[10px] font-black text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded inline-block">~${r.bonus} base px</div>
         </div>
-        <div style="text-align:right;"><div style="font-size:.82em;font-weight:700;color:var(--gold);">~${r.bonus}</div><div style="font-size:.68em;color:var(--text3);">base price</div></div>
-      </div>
-    </div>`).join('');
+        `).join('');
+      html += `</div></div></div>`;
+
+      document.getElementById('trucksRenderContainer').innerHTML = html;
     }
 
     function renderFinance() {
       const profit = G.totalRevenue - G.totalExpenses;
-      document.getElementById('financeSummary').innerHTML = `
-    <div class="finance-summary">
-      <div style="font-size:.7em;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Net Profit</div>
-      <div class="fin-big ${profit >= 0 ? 'profit' : 'loss'}">$${Math.abs(Math.floor(profit)).toLocaleString()}</div>
-      <div style="font-size:.75em;color:var(--text2);margin-top:4px;">${profit >= 0 ? 'In the black ✅' : 'In the red ⚠️'}</div>
-    </div>
-    <div class="card" style="margin:0 10px 10px;">
-      <div class="ledger-row"><span class="ledger-label">Total Revenue</span><span class="ledger-val in">+$${Math.floor(G.totalRevenue).toLocaleString()}</span></div>
-      <div class="ledger-row"><span class="ledger-label">Total Expenses</span><span class="ledger-val out">-$${Math.floor(G.totalExpenses).toLocaleString()}</span></div>
-      <div class="ledger-row"><span class="ledger-label">Today Revenue</span><span class="ledger-val in">+$${Math.floor(G.dailyRevenue).toLocaleString()}</span></div>
-      <div class="ledger-row"><span class="ledger-label">Payroll/Day</span><span class="ledger-val out">-$${getPayroll()}</span></div>
-      <div class="ledger-row"><span class="ledger-label">Cash on Hand</span><span class="ledger-val" style="color:var(--gold)">$${Math.floor(G.cash).toLocaleString()}</span></div>
-    </div>
-  `;
 
-      document.getElementById('ledger').innerHTML = G.ledger.length === 0 ?
-        `<div style="padding:8px 14px;font-size:.8em;color:var(--text3);">No transactions yet.</div>` :
-        G.ledger.map(e => `
-      <div class="card" style="margin:0 10px 5px;padding:9px 13px;">
-        <div class="ledger-row" style="padding:0;border:none;">
-          <span class="ledger-label" style="font-size:.78em;">Day ${e.day} · ${e.desc}</span>
-          <span class="ledger-val ${e.amount > 0 ? 'in' : e.amount < 0 ? 'out' : ''}" style="font-size:.82em;">${e.amount > 0 ? '+' : e.amount < 0 ? '' : ''} ${e.amount !== 0 ? '$' + Math.abs(e.amount) : '—'}</span>
-        </div>
-      </div>`).join('');
+      let html = `<div class="p-4 flex flex-col gap-6">`;
+
+      // Financial Summary Block
+      html += `
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm">
+          <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Net Profit</p>
+          <div class="text-4xl font-black ${profit >= 0 ? 'text-green-500' : 'text-red-500'} mb-1">
+              $${Math.abs(Math.floor(profit)).toLocaleString()}
+          </div>
+          <p class="text-xs font-bold text-slate-500">${profit >= 0 ? 'In the black ✅' : 'In the red ⚠️'}</p>
+          
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-col gap-2">
+              <div class="flex justify-between items-center text-sm">
+                  <span class="text-slate-500 font-bold">Total Revenue</span>
+                  <span class="text-green-500 font-black">+$${Math.floor(G.totalRevenue).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                  <span class="text-slate-500 font-bold">Total Expenses</span>
+                  <span class="text-red-500 font-black">-$${Math.floor(G.totalExpenses).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                  <span class="text-slate-500 font-bold">Today Revenue</span>
+                  <span class="text-green-500 font-black">+$${Math.floor(G.dailyRevenue).toLocaleString()}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm">
+                  <span class="text-slate-500 font-bold">Payroll/Day</span>
+                  <span class="text-red-500 font-black">-$${getPayroll()}</span>
+              </div>
+              <div class="flex justify-between items-center text-sm mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                  <span class="text-slate-800 dark:text-white font-black uppercase tracking-wider text-[10px]">Cash on Hand</span>
+                  <span class="text-amber-500 font-black">$${Math.floor(G.cash).toLocaleString()}</span>
+              </div>
+          </div>
+      </div>
+        `;
 
       // Milestones
       const ALL_MILESTONES = [
@@ -2281,15 +1727,51 @@
         { id: 'contract_5', icon: '📋', label: '5 Contracts' },
         { id: 'revenue_10k', icon: '📈', label: '$10K Revenue' },
       ];
-      document.getElementById('milestones').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 10px 14px;">
-    ${ALL_MILESTONES.map(m => `
-      <div style="display:flex;align-items:center;gap:6px;background:var(--surface${G.milestones[m.id] ? '' : '2'});
-        border:1.5px solid ${G.milestones[m.id] ? 'var(--gold2)' : 'var(--border)'};border-radius:20px;
-        padding:6px 12px;font-size:.75em;font-weight:700;
-        opacity:${G.milestones[m.id] ? 1 : .45};">
-        <span>${m.icon}</span><span>${m.label}</span>${G.milestones[m.id] ? '<span style="color:var(--gold)">✓</span>' : ''}
-      </div>`).join('')}
-  </div>`;
+
+      html += `
+        <div>
+          <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Milestones</h3>
+          <div class="flex flex-wrap gap-2">
+            ${ALL_MILESTONES.map(m => {
+        const unlocked = G.milestones[m.id];
+        return `
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border ${unlocked ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 opacity-60'}">
+                    <span>${m.icon}</span>
+                    <span class="text-[10px] font-bold ${unlocked ? 'text-amber-800 dark:text-amber-400' : 'text-slate-500'} uppercase tracking-wider">${m.label}</span>
+                    ${unlocked ? `<span class="material-symbols-outlined text-[14px] text-amber-500 ml-1">check_circle</span>` : ''}
+                </div>
+                `;
+      }).join('')}
+          </div>
+      </div>
+        `;
+
+      // Ledger
+      html += `
+        <div class="pb-10">
+          <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider mb-3 px-1">Transaction History</h3>
+          <div class="flex flex-col gap-2">
+            ${G.ledger.length === 0 ?
+          `<div class="text-center text-sm font-bold text-slate-400 py-6 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">No transactions yet.</div>` :
+          G.ledger.map(e => `
+              <div class="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm flex justify-between items-center">
+                  <div>
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Day ${e.day}</span>
+                      <p class="text-xs font-bold text-slate-700 dark:text-slate-300 leading-tight">${e.desc}</p>
+                  </div>
+                  <span class="text-sm font-black ${e.amount > 0 ? 'text-green-500' : e.amount < 0 ? 'text-red-500' : 'text-slate-500'}">
+                      ${e.amount > 0 ? '+' : ''}${e.amount !== 0 ? '$' + Math.abs(e.amount).toLocaleString() : '—'}
+                  </span>
+              </div>
+              `).join('')}
+          </div>
+      </div>
+        `;
+
+      html += `</div>`;
+
+      const fc = document.getElementById('financeRenderContainer');
+      if (fc) fc.innerHTML = html;
     }
 
     // ══════════════════════════════════════════════════════
@@ -2298,102 +1780,183 @@
     function openModal(title, html) {
       closeModal();
       const bg = document.createElement('div');
-      bg.className = 'modal-bg'; bg.id = 'modalBg';
-      bg.innerHTML = `<div class="modal-box">
-    <div class="modal-head">
-      <div class="modal-drag"></div>
-      <div class="modal-title">${title}</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">${html}</div>
-  </div>`;
+      bg.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 modal-bg transition-opacity duration-300 opacity-0';
+      bg.id = 'modalBg';
+      bg.innerHTML = `
+        <div class="bg-slate-50 dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] scale-90 transition-transform duration-300">
+          <!-- Modal Header -->
+          <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-800">
+              <h2 class="text-lg text-slate-800 dark:text-white font-black tracking-tight">${title}</h2>
+              <button class="size-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" onclick="closeModal()">
+                  <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+          </div>
+          <!-- Modal Body -->
+          <div class="overflow-y-auto overflow-x-hidden relative flex-1">
+            ${html}
+          </div>
+        </div>
+        `;
       bg.addEventListener('click', e => { if (e.target === bg) closeModal(); });
       document.body.appendChild(bg);
+
+      // Animate in
+      setTimeout(() => {
+        bg.classList.remove('opacity-0');
+        bg.querySelector('.max-w-md').classList.remove('scale-90');
+      }, 10);
     }
-    function closeModal() { const m = document.getElementById('modalBg'); if (m) m.remove(); }
+    function closeModal() {
+      const m = document.getElementById('modalBg');
+      if (m) {
+        m.classList.add('opacity-0');
+        m.querySelector('.max-w-md').classList.add('scale-90');
+        setTimeout(() => m.remove(), 300);
+      }
+    }
 
     function openHireModal() {
-      const html = STAFF_ROLES.map(r => {
-        const hired = G.staff.some(s => s.id === r.id);
-        const hireCost = r.salary * 7;
-        const canAfford = G.cash >= hireCost;
-        const full = G.staff.length >= G.maxStaff;
-        return `<div class="card" style="margin:8px 10px;">
-      <div class="card-row">
-        <div style="font-size:1.9em;">${r.icon}</div>
-        <div style="flex:1;">
-          <div style="font-size:.88em;font-weight:700;color:var(--text);">${r.name}</div>
-          <div style="font-size:.72em;color:var(--text2);margin-top:2px;">${r.bonus}</div>
-          <div style="font-size:.7em;color:var(--text3);margin-top:2px;">Salary: $${r.salary}/day · Hire cost: $${hireCost}</div>
+      const html = `<div class="p-4 flex flex-col gap-3">` +
+        STAFF_ROLES.map(r => {
+          const hired = G.staff.some(s => s.id === r.id);
+          const hireCost = r.salary * 7;
+          const canAfford = G.cash >= hireCost;
+          const full = G.staff.length >= G.maxStaff;
+          return `
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col gap-3">
+            <div class="items-start flex gap-4">
+                <div class="size-12 bg-white dark:bg-slate-700 rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+                    ${r.icon}
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <h4 class="text-sm font-bold text-slate-800 dark:text-white capitalize leading-tight mb-1 truncate">${r.name}</h4>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 text-primary">${r.bonus}</p>
+                    <p class="text-[9px] text-slate-400 capitalize truncate">Salary: $${r.salary}/day</p>
+                </div>
+            </div>
+            <button class="w-full py-1.5 ${hired ? 'bg-slate-200 dark:bg-slate-700 text-slate-400' : canAfford && !full ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 active:scale-95 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'} rounded-lg text-xs font-bold transition-transform" 
+              ${hired || !canAfford || full ? 'disabled' : ''} onclick="hireStaff('${r.id}'); closeModal();">
+              ${hired ? 'Already Hired' : full ? 'No Empty Desks' : 'Hire for $' + hireCost + ' (1wk pay)'}
+            </button>
         </div>
-        <button class="btn ${hired ? 'btn-ghost' : canAfford && !full ? 'btn-gold' : 'btn-ghost'} btn-sm" 
-          ${hired || !canAfford || full ? 'disabled' : ''} onclick="hireStaff('${r.id}')">
-          ${hired ? 'Hired' : full ? 'Full' : '$' + hireCost}
-        </button>
-      </div>
-    </div>`;
-      }).join('');
-      openModal('👷 Hire Staff', `<div style="padding:4px 0 0;font-size:.78em;color:var(--text3);text-align:center;padding:8px 14px 4px;">Slots: ${G.staff.length}/${G.maxStaff} used</div>${html}`);
+        `;
+        }).join('') + `</div>`;
+      openModal('👷 Hire Staff', `<div style="padding:4px 0 0;font-size:.78em;color:#64748b;text-align:center;padding:8px 14px 4px;">Staff Slots: ${G.staff.length}/${G.maxStaff} Used</div>${html}`);
     }
 
     function openBuyTruckModal() {
-      const html = TRUCK_TYPES.map(t => {
-        const owned = G.trucks.some(x => x.type === t.id);
-        const canAfford = G.cash >= t.cost;
-        const full = G.trucks.length >= G.maxTrucks;
-        return `<div class="card" style="margin:8px 10px;">
-      <div style="display:flex;align-items:flex-start;gap:10px;">
-        <div style="font-size:2.2em;">${t.icon}</div>
-        <div style="flex:1;">
-          <div style="font-size:.88em;font-weight:700;color:var(--text);">${t.name}</div>
-          <div style="font-size:.72em;color:var(--text2);margin-top:2px;">Cap: ${t.cap} · Routes: ${t.routes.map(r => ROUTES.find(x => x.id === r)?.name || r).join(', ')}</div>
+      const html = `<div class="p-4 flex flex-col gap-3">` +
+        TRUCK_TYPES.map(t => {
+          const owned = G.trucks.some(x => x.type === t.id);
+          const canAfford = G.cash >= t.cost;
+          const full = G.trucks.length >= G.maxTrucks;
+          return `
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex items-start gap-4">
+            <div class="size-12 bg-white dark:bg-slate-700 rounded-xl flex items-center justify-center text-3xl shadow-sm flex-shrink-0">
+                ${t.icon}
+            </div>
+            <div class="flex-1">
+                <h4 class="text-sm font-bold text-slate-800 dark:text-white capitalize leading-tight mb-1">${t.name}</h4>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Cap: ${t.cap} units</p>
+                <p class="text-[9px] text-slate-400 capitalize mb-3 line-clamp-1">Routes: ${t.routes.map(r => ROUTES.find(x => x.id === r)?.name || r).join(', ')}</p>
+                
+                <button class="w-full py-1.5 ${owned ? 'bg-slate-200 dark:bg-slate-700 text-slate-400' : canAfford && !full ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 active:scale-95 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'} rounded-lg text-xs font-bold transition-transform" 
+                  ${owned || !canAfford || full ? 'disabled' : ''} onclick="buyTruck('${t.id}'); closeModal();">
+                  ${owned ? 'Already Owned' : full ? 'Fleet is Full' : 'Buy for $' + t.cost.toLocaleString()}
+                </button>
+            </div>
         </div>
-        <button class="btn ${owned ? 'btn-ghost' : canAfford && !full ? 'btn-gold' : 'btn-ghost'} btn-sm"
-          ${owned || !canAfford || full ? 'disabled' : ''} onclick="buyTruck('${t.id}')">
-          ${owned ? 'Owned' : full ? 'Fleet Full' : '$' + t.cost.toLocaleString()}
-        </button>
-      </div>
-    </div>`;
-      }).join('');
-      openModal('🚚 Buy a Truck', `<div style="padding:4px 0 0;font-size:.78em;color:var(--text3);text-align:center;padding:8px 14px 4px;">Fleet: ${G.trucks.length}/${G.maxTrucks}</div>${html}`);
+        `;
+        }).join('') + `</div>`;
+      openModal('🚚 Expand Fleet', `<div style="padding:4px 0 0;font-size:.78em;color:#64748b;text-align:center;padding:8px 14px 4px;">Fleet Space: ${G.trucks.length}/${G.maxTrucks} Used</div>${html}`);
     }
 
     // ══════════════════════════════════════════════════════
     //  TAB SWITCHING
     // ══════════════════════════════════════════════════════
     function switchTab(tab) {
-      document.querySelectorAll('.zone').forEach(z => z.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.getElementById('zone-' + tab).classList.add('active');
-      document.getElementById('tab-' + tab).classList.add('active');
+      document.querySelectorAll('.zone-container').forEach(z => z.classList.remove('active'));
+      const activeZone = document.getElementById('zone-' + tab) || document.getElementById('zone-upgrades');
+      activeZone.classList.add('active');
+
+      // Update Nav highlighting
+      const navIds = ['farm', 'market', 'factory', 'upgrades', 'trucks'];
+      navIds.forEach(id => {
+        const el = document.getElementById('nav-' + id);
+        if (!el) return;
+        const iconContainer = el.querySelector('.nav-icon-container');
+        const textEl = el.querySelector('.nav-text');
+        if (id === tab) {
+          if (id === 'factory') {
+            // Keep special factory styling
+          } else {
+            iconContainer.className = 'nav-icon-container flex items-center justify-center size-10 rounded-xl bg-primary text-white transition-all group-active:scale-95';
+            textEl.className = 'nav-text text-[10px] font-extrabold text-primary uppercase tracking-wider';
+          }
+        } else {
+          if (id === 'factory') {
+            // Revert special factory styling if needed (or leave as is, template keeps it primary)
+          } else {
+            iconContainer.className = 'nav-icon-container flex items-center justify-center size-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 transition-all group-active:scale-95';
+            textEl.className = 'nav-text text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider';
+          }
+        }
+      });
+
       // Render on switch
       if (tab === 'farm') renderFarm();
       if (tab === 'factory') renderFactory();
       if (tab === 'market') renderMarket();
-      if (tab === 'staff') renderStaff();
+      if (tab === 'upgrades' || tab === 'staff') { switchUpgradeTab(tab); }
       if (tab === 'trucks') renderTrucks();
       if (tab === 'finance') renderFinance();
     }
+
+    function switchUpgradeTab(subTab) {
+      document.getElementById('zone-upgrades').classList.add('active');
+      document.getElementById('btn-tab-upgrades').className = subTab === 'upgrades' ? 'flex-1 py-3 text-sm font-bold border-b-4 border-primary text-primary' : 'flex-1 py-3 text-sm font-bold border-b-4 border-transparent text-slate-500 dark:text-slate-400';
+      document.getElementById('btn-tab-staff').className = subTab === 'staff' ? 'flex-1 py-3 text-sm font-bold border-b-4 border-primary text-primary' : 'flex-1 py-3 text-sm font-bold border-b-4 border-transparent text-slate-500 dark:text-slate-400';
+
+      if (subTab === 'upgrades') renderFarmUpgrades();
+      if (subTab === 'staff') renderStaff();
+    }
+
+
 
     // ══════════════════════════════════════════════════════
     //  FLOATERS & TOAST
     // ══════════════════════════════════════════════════════
     function spawnFloat(text, e, x, y) {
       const el = document.createElement('div');
-      el.className = 'floater';
+      el.className = 'fixed z-[150] text-amber-400 font-black text-sm drop-shadow-md pointer-events-none animate-[floatUp_1s_ease-out_forwards] whitespace-nowrap';
       const px = e ? e.clientX || x || window.innerWidth / 2 : (x || window.innerWidth / 2);
       const py = e ? e.clientY || y || window.innerHeight / 2 : (y || window.innerHeight / 2);
       el.textContent = text;
-      el.style.cssText = `left:${px - 30}px;top:${py - 20}px;color:var(--gold);`;
+      el.style.left = `${px - 30}px`;
+      el.style.top = `${py - 20}px`;
       document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1200);
+      setTimeout(() => el.remove(), 1000);
     }
+
+    // Add missing keyframes for floatUp
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `@keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-40px) scale(1); } }`;
+    document.head.appendChild(styleEl);
+
     let toastT = null;
     function showToast(msg) {
       const el = document.getElementById('toast');
-      el.textContent = msg; el.classList.add('show');
+      el.textContent = msg;
+      // Replace old CSS classes with Tailwind equivalents if elements weren't already Tailwind-styled.
+      // (The HTML shell provides #toast with Tailwind `transition - all duration - 300`, so we just toggle opacity & translateY logic)
+
+      // Because the original shell didn't include the precise classes for the toast toggle, let's manually style it here or override the classes.
+      el.className = 'fixed left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm tracking-wide transition-all duration-300 pointer-events-none top-24 opacity-100 transform translate-y-0';
+
       clearTimeout(toastT);
-      toastT = setTimeout(() => el.classList.remove('show'), 2800);
+      toastT = setTimeout(() => {
+        el.className = 'fixed left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm tracking-wide transition-all duration-300 pointer-events-none top-20 opacity-0 transform -translate-y-4';
+      }, 2800);
     }
 
     // ══════════════════════════════════════════════════════
@@ -2422,7 +1985,7 @@
           const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
           const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
           const targetQty = Math.floor(5 * Math.pow(1.4, lvl - 2));
-          reqs.push({ type: 'item', target: targetItem, amount: targetQty, desc: `Hoard ${targetQty} ${targetItem}s in Inventory` });
+          reqs.push({ type: 'item', target: targetItem, amount: targetQty, desc: `Hoard ${targetQty} ${targetItem} s in Inventory` });
         }
       }
       G.levelReqs = reqs;
@@ -2440,7 +2003,7 @@
         if (val < req.amount) allMet = false;
       });
 
-      if (allMet && !document.getElementById('modalBg')) {
+      if (allMet && document.querySelectorAll('.modal-bg').length === 0) {
         showLevelCompleteModal();
       }
     }
@@ -2449,22 +2012,27 @@
       const pGain = 0.5; // +50% multiplier per level
       const newMult = (G.prestigeMult + pGain).toFixed(1);
       openModal(`🎉 Level ${G.level} Complete!`, `
-        <div style="padding:15px; font-size:0.9em; line-height:1.6; color:var(--text); text-align:center;">
-          <div style="font-size:3em; margin-bottom:10px;">🌟</div>
-          <p style="margin-bottom:10px;">You are an egg-ceptional tycoon!</p>
-          <p style="color:var(--text2); margin-bottom:20px; font-size:0.9em;">
-            Moving to the next level will <strong style="color:var(--red);">reset your cash, inventory, and plot levels</strong> 
-            to start fresh.<br><br>
-            However, you will <strong style="color:var(--green);">KEEP</strong> all Unlocked Plots, Farm Upgrades, Trucks, and Staff!
-          </p>
-          <div class="card" style="margin-bottom:20px; text-align:center; padding:10px;">
-            <div style="font-size:0.8em; color:var(--text3); font-weight:bold; letter-spacing:1px; text-transform:uppercase;">Permanent Prestige Multiplier</div>
-            <div style="font-size:1.8em; font-family:'Syne'; color:var(--gold); font-weight:800;">
-              ${G.prestigeMult.toFixed(1)}x ➜ ${newMult}x
+        <div class="p-6 text-center text-slate-800 dark:text-slate-200 flex flex-col items-center">
+            <div class="text-6xl mb-4 drop-shadow-md">🌟</div>
+            <h3 class="text-xl font-black mb-2 text-primary">Egg-ceptional Tycoon!</h3>
+            <p class="text-sm font-bold text-slate-500 mb-6 max-w-sm">
+                Moving to the next level will <span class="text-red-500">reset your cash, inventory, and plot levels</span> to start fresh.<br><br>
+                However, you will <span class="text-green-500 font-black">KEEP</span> all Unlocked Plots, Farm Upgrades, Trucks, and Staff!
+            </p>
+            
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 mb-6 w-full max-w-sm">
+                <p class="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-2">Permanent Prestige Multiplier</p>
+                <div class="text-3xl font-black text-amber-500 flex items-center justify-center gap-3">
+                    <span class="opacity-50">${G.prestigeMult.toFixed(1)}x</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    <span>${newMult}x</span>
+                </div>
+                <p class="text-[10px] font-bold text-amber-700/60 dark:text-amber-400/60 uppercase tracking-wider mt-2">Applies to all sale prices permanently!</p>
             </div>
-            <div style="font-size:0.8em; color:var(--text2); margin-top:5px;">Applies to all sale prices permanently!</div>
-          </div>
-          <button class="btn btn-gold btn-full" onclick="advanceLevel()">Advance to Level ${G.level + 1} &rarr;</button>
+            
+            <button class="w-full max-w-sm py-3 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl font-black text-sm shadow-lg shadow-orange-500/30 active:scale-95 transition-all flex items-center justify-center gap-2" onclick="advanceLevel(); closeModal();">
+                Advance to Level ${G.level + 1} <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
         </div>
       `);
     }
@@ -2522,11 +2090,10 @@
     setInterval(() => {
       updateUI();
       // Update visible zone
-      const activeZone = document.querySelector('.zone.active')?.id?.replace('zone-', '');
-      if (activeZone === 'factory') renderFactory();
-      if (activeZone === 'trucks') renderTrucks();
-      if (activeZone === 'market') renderMarket();
-      if (activeZone === 'finance') renderFinance();
+      if (document.getElementById('zone-factory').classList.contains('active')) renderFactory();
+      if (document.getElementById('zone-trucks').classList.contains('active')) renderTrucks();
+      if (document.getElementById('zone-market').classList.contains('active')) renderMarket();
+      if (document.getElementById('zone-finance').classList.contains('active')) renderFinance();
     }, 2000);
 
     // Welcome Tutorial
