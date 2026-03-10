@@ -1,0 +1,119 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import tw from '../styles';
+import gameStore from '../gameEngine';
+import { CONTRACT_POOL } from '../constants';
+
+export default function MarketZone({ gameState }) {
+    const mult = gameStore.getPriceMultiplier();
+
+    const spotGoods = [
+        { id: 'egg', icon: '🥚', name: 'Raw Eggs', price: 2.2 },
+        { id: 'freeRange', icon: '🐓', name: 'Free Range', price: 5.5 },
+        { id: 'organic', icon: '🌿', name: 'Organic', price: 7.8 },
+        { id: 'powdered', icon: '🥛', name: 'Powdered', price: 6.0 },
+        { id: 'mayo', icon: '🫙', name: 'Mayo Jar', price: 14 },
+        { id: 'omelette', icon: '🍳', name: 'Omelette', price: 11.5 },
+        { id: 'cake', icon: '🎂', name: 'Egg Cake', price: 37 },
+        { id: 'custard', icon: '🍮', name: 'Custard', price: 18 },
+        { id: 'vaccine', icon: '💉', name: 'Protein Serum', price: 200 },
+    ];
+
+    const activeContracts = gameState.contracts.filter(c => !c.accepted);
+
+    return (
+        <ScrollView contentContainerStyle={tw`pb-32 pt-24 px-4 bg-slate-200`}>
+      {/* Ticker */}
+      <View style={tw`bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-700 p-3 mb-6`}>
+          <View style={tw`flex-row justify-between items-center mb-2`}>
+             <Text style={tw`text-[9px] font-black text-slate-500 uppercase tracking-wider`}>Live Market Rates</Text>
+             <View style={tw`flex-row items-center gap-2`}>
+                <Text style={tw`text-[9px] font-black uppercase ${mult > 1 ? 'text-green-500' : 'text-red-500'}`}>Trend: {(mult * 100).toFixed(0)}%</Text>
+                {gameState.frenzyActive > 0 && <Text style={tw`text-[9px] font-black bg-primary text-white px-1.5 rounded`}>FRENZY!</Text>}
+             </View>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row items-center mt-2`}>
+              {spotGoods.map((g, i) => {
+                  const p = (g.price * mult).toFixed(2);
+                  const up = Math.random() > 0.5;
+                  return (
+                      <View key={i} style={tw`flex-row items-center gap-1 mx-4`}>
+                          <Text style={tw`text-xs font-bold text-slate-400`}>{g.name}</Text>
+                          <Text style={tw`text-xs font-black ${up ? 'text-green-500' : 'text-red-500'}`}>{up ? '▲' : '▼'} ${p}</Text>
+                      </View>
+                  )
+              })}
+          </ScrollView>
+      </View>
+
+      {/* Contracts */}
+      <View style={tw`mb-6`}>
+        <Text style={tw`text-xs font-black text-slate-800 uppercase tracking-wider mb-3 px-1`}>Active Contracts</Text>
+        {activeContracts.length === 0 ? (
+          <View style={tw`bg-white rounded-2xl p-6 items-center shadow-sm border border-slate-200`}>
+              <Text style={tw`text-xs font-bold text-slate-400`}>No active contracts.</Text>
+          </View>
+        ) : (
+          <View style={tw`flex-col gap-3`}>
+              {activeContracts.map(c => {
+                  const have = Math.floor(gameState.inv[c.want] || 0);
+                  const canFill = have >= c.qty;
+                  const earn = Math.floor(c.qty * c.pricePerUnit * mult);
+                  const timeLeft = Math.floor(c.ticksLeft / 60);
+
+                  return (
+                      <View key={c.id} style={tw`bg-white rounded-2xl p-4 shadow-sm border ${c.urgent ? 'border-amber-400' : 'border-slate-200'} flex-row items-start gap-4`}>
+                          <Text style={tw`text-3xl`}>{c.buyer.split(' ')[0]}</Text>
+                          <View style={tw`flex-1`}>
+                             <Text style={tw`text-sm font-bold text-slate-800`}>{c.buyer.split(' ').slice(1).join(' ')}</Text>
+                             <Text style={tw`text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1`}>Needs: {c.qty} {c.want} · Have: {have}</Text>
+                             <View style={tw`flex-row flex-wrap gap-2 mb-3`}>
+                                <Text style={tw`text-[9px] font-black bg-green-50 text-green-600 px-2 py-0.5 rounded uppercase`}>Pay: ${earn}</Text>
+                                <Text style={tw`text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase`}>{timeLeft}m left</Text>
+                                {c.urgent && <Text style={tw`text-[9px] font-black bg-amber-50 text-amber-600 px-2 py-0.5 rounded uppercase`}>Urgent</Text>}
+                             </View>
+                             <TouchableOpacity disabled={!canFill} onPress={() => gameStore.acceptContract(c.id)} style={tw`w-full py-2 ${canFill ? 'bg-green-500' : 'bg-slate-100'} rounded-lg items-center`}>
+                                <Text style={tw`text-xs font-black uppercase ${canFill ? 'text-white' : 'text-slate-400'}`}>{canFill ? 'Fulfill Contract' : `Need ${c.qty - have} more`}</Text>
+                             </TouchableOpacity>
+                          </View>
+                      </View>
+                  )
+              })}
+          </View>
+        )}
+      </View>
+
+      {/* Spot Market */}
+      <View style={tw`mb-6`}>
+         <Text style={tw`text-xs font-black text-slate-800 uppercase tracking-wider mb-3 px-1`}>Spot Market</Text>
+         <View style={tw`flex-row flex-wrap gap-3 justify-between`}>
+             {spotGoods.map(g => {
+                 const avail = Math.floor(gameState.inv[g.id] || 0);
+                 const price = (g.price * mult).toFixed(2);
+                 const sellAll = avail > 0;
+
+                 return (
+                     <View key={g.id} style={tw`w-[48%] bg-white rounded-2xl p-3 shadow-sm border border-slate-200 items-center justify-between`}>
+                         <View style={tw`w-12 h-12 rounded-full bg-slate-50 items-center justify-center mb-2`}>
+                             <Text style={tw`text-2xl`}>{g.icon}</Text>
+                         </View>
+                         <Text style={tw`text-xs font-bold text-slate-800 text-center mb-1`}>{g.name}</Text>
+                         <Text style={tw`text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-2`}>${price}/u · Stock: {avail}</Text>
+                         
+                         <View style={tw`flex-row gap-1.5 w-full mt-auto`}>
+                            <TouchableOpacity disabled={avail < 10} style={tw`flex-1 py-1.5 items-center justify-center rounded ${avail < 10 ? 'bg-slate-100' : 'bg-slate-200'}`} onPress={() => gameStore.sellSpot(g.id, 10)}>
+                               <Text style={tw`font-black text-[10px] uppercase text-slate-500`}>-10</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity disabled={!sellAll} style={tw`flex-[2] py-1.5 items-center justify-center rounded ${sellAll ? 'bg-primary/10 border border-primary/20' : 'bg-slate-100'}`} onPress={() => gameStore.sellSpot(g.id, avail)}>
+                               <Text style={tw`font-black text-[10px] uppercase ${sellAll ? 'text-primary' : 'text-slate-400'}`}>All ${Math.floor(avail * g.price * mult)}</Text>
+                            </TouchableOpacity>
+                         </View>
+                     </View>
+                 );
+             })}
+         </View>
+      </View>
+
+    </ScrollView>
+  );
+}
