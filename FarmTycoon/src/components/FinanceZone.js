@@ -18,10 +18,10 @@ export default function FinanceZone({ gameState }) {
     ];
 
     return (
-        <ScrollView contentContainerStyle={tw`pb-36 pt-24 px-4 bg-backgroundLight`}>
+        <ScrollView contentContainerStyle={tw`pb-36 px-4 bg-backgroundLight`}>
       <View style={tw`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm mb-6`}>
-          <Text style={tw`text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1`}>Net Profit</Text>
-          <Text style={tw`text-4xl font-black ${profit >= 0 ? 'text-green-500' : 'text-red-500'} mb-1`}>
+          <Text style={tw`text-[10px] text-slate-500 font-interBold uppercase tracking-wider mb-1`}>Net Profit</Text>
+          <Text style={tw`text-4xl font-interBlack ${profit >= 0 ? 'text-green-500' : 'text-red-500'} mb-1`}>
               ${Math.abs(Math.floor(profit)).toLocaleString()}
           </Text>
           <Text style={tw`text-xs font-bold text-slate-500`}>{profit >= 0 ? 'In the black ✅' : 'In the red ⚠️'}</Text>

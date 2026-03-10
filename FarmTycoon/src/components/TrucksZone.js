@@ -11,13 +11,13 @@ export default function TrucksZone({ gameState }) {
   const activeCap = gameState.trucks.filter(t => t.status === 'dispatched').reduce((acc, t) => acc + t.load, 0);
 
   return (
-    <ScrollView contentContainerStyle={tw`pb-36 pt-24 px-4 bg-backgroundLight`}>
+    <ScrollView contentContainerStyle={tw`pb-36 px-4 bg-backgroundLight`}>
       {/* Hero Stats */}
       <View style={tw`bg-slate-900 rounded-[1.5rem] p-5 shadow-xl relative overflow-hidden mb-6`}>
         <View style={tw`flex-row justify-between items-start mb-4 relative z-10`}>
           <View>
-            <Text style={tw`text-white font-black text-lg`}>Truck Depot</Text>
-            <Text style={tw`text-slate-400 text-xs font-bold uppercase tracking-wider mt-1`}>Manage Deliveries</Text>
+            <Text style={tw`text-white font-interBlack text-lg`}>Truck Depot</Text>
+            <Text style={tw`text-slate-400 text-xs font-interBold uppercase tracking-wider mt-1`}>Manage Deliveries</Text>
           </View>
           <MaterialIcons name="local-shipping" size={100} color="rgba(255,255,255,0.05)" style={tw`absolute -right-6 -bottom-16`} pointerEvents="none" />
         </View>

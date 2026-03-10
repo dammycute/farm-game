@@ -63,6 +63,7 @@ const DEF = {
     weather: { type: 'sunny', daysLeft: 2 },
     marketTrend: 1.0,
     frenzyActive: 0,
+    contractsFulfilled: 0,
 };
 
 class GameEngine {
@@ -110,6 +111,7 @@ class GameEngine {
         if (!this.G.ledger) this.G.ledger = [];
         if (!this.G.upgrades) this.G.upgrades = {};
         if (!this.G.milestones) this.G.milestones = {};
+        if (!this.G.contractsFulfilled) this.G.contractsFulfilled = 0;
         if (!this.G.inv) this.G.inv = { ...DEF.inv };
 
         if (this.G.contracts.length === 0) this.generateContracts(3);
@@ -495,36 +497,81 @@ class GameEngine {
     if (!this.G.level) this.G.level = 1;
     const lvl = this.G.level;
     const reqs = [];
+
+    // Base multipliers for scaling
+    const scale = Math.pow(1.5, lvl - 1);
+    
+    // Level 1: Introduction
     if (lvl === 1) {
-      reqs.push({ type: 'revenue', amount: 2000, desc: 'Earn $2,000 Total Revenue' });
-    } else if (lvl === 2) {
-      reqs.push({ type: 'cash', amount: 3000, desc: 'Save $3,000 Cash on hand' });
-    } else {
-      const typeRoll = Math.random();
-      if (typeRoll < 0.33) {
-        const targetRev = Math.floor(2000 * Math.pow(1.6, lvl - 1));
-        reqs.push({ type: 'revenue', amount: targetRev, desc: `Earn $${targetRev.toLocaleString()} Total Revenue` });
-      } else if (typeRoll < 0.66) {
-        const targetCash = Math.floor(1500 * Math.pow(1.6, lvl - 1));
-        reqs.push({ type: 'cash', amount: targetCash, desc: `Save $${targetCash.toLocaleString()} Cash on hand` });
+      reqs.push({ type: 'revenue', amount: 1500, desc: 'Earn $1,500 Total Revenue' });
+      reqs.push({ type: 'plotCount', amount: 3, desc: 'Unlock 3 Plots' });
+    } 
+    // Level 2: Expansion
+    else if (lvl === 2) {
+      reqs.push({ type: 'cash', amount: 2000, desc: 'Hold $2,000 Cash' });
+      reqs.push({ type: 'contractsDone', amount: 3, desc: 'Fulfill 3 Contracts' });
+    }
+    // Level 3: Industrialization
+    else if (lvl === 3) {
+      reqs.push({ type: 'item', target: 'mayo', amount: 10, desc: 'Have 10 Mayonnaise in Stock' });
+      reqs.push({ type: 'staffCount', amount: 2, desc: 'Hire 2 Staff Members' });
+    }
+    // Level 4+: Procedural Challenge
+    else {
+      // 1. Financial Goal (Revenue or Cash)
+      const isCash = Math.random() > 0.5;
+      if (isCash) {
+          const amt = Math.floor(5000 * scale);
+          reqs.push({ type: 'cash', amount: amt, desc: `Hold $${amt.toLocaleString()} Cash` });
       } else {
-        const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
-        const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
-        const targetQty = Math.floor(5 * Math.pow(1.4, lvl - 2));
-        reqs.push({ type: 'item', target: targetItem, amount: targetQty, desc: `Hoard ${targetQty} ${targetItem}s in Inventory` });
+          const amt = Math.floor(10000 * scale);
+          reqs.push({ type: 'revenue', amount: amt, desc: `Earn $${amt.toLocaleString()} Total Revenue` });
+      }
+
+      // 2. Operational Goal (Plots or Staff)
+      const isPlot = Math.random() > 0.4;
+      if (isPlot) {
+          const plotLvl = Math.min(8, Math.floor(2 + lvl/3));
+          reqs.push({ type: 'plotLevel', target: 'henCoop', amount: plotLvl, desc: `Upgrade Hen Coop to Lv ${plotLvl}` });
+      } else {
+          const count = Math.min(6, Math.floor(2 + lvl/4));
+          reqs.push({ type: 'staffCount', amount: count, desc: `Manage a team of ${count} Staff` });
+      }
+
+      // 3. Market Goal (Contracts or Specific Item)
+      const isContract = Math.random() > 0.5;
+      if (isContract) {
+          const count = Math.floor(this.G.contractsFulfilled + (5 * scale));
+          reqs.push({ type: 'contractsDone', amount: count, desc: `Fulfill ${count} Total Contracts` });
+      } else {
+          const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
+          const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
+          const qty = Math.floor(10 * scale);
+          reqs.push({ type: 'item', target: targetItem, amount: qty, desc: `Hoard ${qty} ${targetItem}s` });
       }
     }
+
     this.G.levelReqs = reqs;
   }
 
   checkLevelProgress() {
     if (!this.G.levelReqs || this.G.levelReqs.length === 0) this.generateLevelGoals();
+    
     let allMet = true;
     this.G.levelReqs.forEach((req) => {
       let val = 0;
       if (req.type === 'revenue') val = this.G.totalRevenue;
       if (req.type === 'cash') val = this.G.cash;
       if (req.type === 'item') val = this.G.inv[req.target] || 0;
+      if (req.type === 'contractsDone') val = this.G.contractsFulfilled || 0;
+      if (req.type === 'staffCount') val = this.G.staff.length || 0;
+      if (req.type === 'plotCount') val = this.G.plots.filter(p => p.unlocked).length;
+      if (req.type === 'plotLevel') {
+          const p = this.G.plots.find(p => p.type === req.target);
+          val = p ? p.level : 0;
+      }
+
+      req.current = val; // Store current for UI if needed
       if (val < req.amount) allMet = false;
     });
 
@@ -539,23 +586,9 @@ class GameEngine {
     this.G.level++;
     this.G.prestigeMult += 0.5;
 
-    this.G.cash = 300;
-    this.G.totalRevenue = 0;
-    this.G.totalExpenses = 0;
+    // Remove resets - we keep cash, inv, and plots!
+    // Just generate the next set of goals
 
-    Object.keys(this.G.inv).forEach((k) => (this.G.inv[k] = 0));
-    this.G.inv.feedWheat = 100;
-    this.G.inv.feedCorn = 50;
-    this.G.inv.water = 100;
-
-    this.G.plots.forEach((plot) => {
-      plot.stored = 0;
-      if (plot.unlocked) plot.level = 1;
-    });
-
-    this.G.factoryQueue = [];
-    this.G.contracts = [];
-    this.generateContracts(3);
     this.generateLevelGoals();
 
     this.showToast(`🌟 Welcome to Level ${this.G.level}! Multiplier is now ${this.G.prestigeMult.toFixed(1)}x!`);
@@ -710,6 +743,7 @@ class GameEngine {
     this.G.totalRevenue += earn;
     this.G.dailyRevenue += earn;
     c.accepted = true;
+    this.G.contractsFulfilled++;
     this.addLedger(`Contract: ${c.buyer}`, earn, 'contract');
     
     if(coords) this.spawnFloat(`+$${earn} 📋`, coords.x, coords.y);
@@ -849,6 +883,23 @@ class GameEngine {
     this.G.contracts = this.G.contracts.filter((c) => c.accepted);
     this.generateContracts(4);
     this.showToast('Contracts refreshed!');
+    this.notify();
+  }
+  // ---- DEV TOOLS ----
+  cheatProgress() {
+    if (!this.G.levelReqs) return;
+    this.G.levelReqs.forEach(req => {
+        if (req.type === 'revenue') this.G.totalRevenue = Math.max(this.G.totalRevenue, req.amount - 50);
+        if (req.type === 'cash') this.G.cash = Math.max(this.G.cash, req.amount - 50);
+        if (req.type === 'item') this.G.inv[req.target] = Math.max(this.G.inv[req.target] || 0, req.amount - 1);
+        if (req.type === 'contractsDone') this.G.contractsFulfilled = Math.max(this.G.contractsFulfilled, req.amount - 1);
+        if (req.type === 'staffCount') {
+            while (this.G.staff.length < req.amount) {
+                this.G.staff.push({ ...STAFF_ROLES[0], id: 'cheat_' + Math.random() });
+            }
+        }
+    });
+    this.showToast("🪄 Level goals set to 95% completion!");
     this.notify();
   }
 }

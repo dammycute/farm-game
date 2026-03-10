@@ -9,12 +9,12 @@ export default function UpgradesZone({ gameState }) {
 
     return (
         <View style={tw`flex-1 bg-backgroundLight`}>
-      <View style={tw`flex-row border-b border-primary/10 pt-24 bg-white z-10`}>
+      <View style={tw`flex-row border-b border-primary/10 bg-white z-50`}>
         <TouchableOpacity style={tw`flex-1 py-3 border-b-4 ${tab === 'upgrades' ? 'border-primary' : 'border-transparent'} items-center`} onPress={() => setTab('upgrades')}>
-          <Text style={tw`text-sm font-bold ${tab === 'upgrades' ? 'text-primary' : 'text-slate-500'}`}>Upgrades</Text>
+          <Text style={tw`text-sm font-interBold ${tab === 'upgrades' ? 'text-primary' : 'text-slate-500'}`}>Upgrades</Text>
         </TouchableOpacity>
         <TouchableOpacity style={tw`flex-1 py-3 border-b-4 ${tab === 'staff' ? 'border-primary' : 'border-transparent'} items-center`} onPress={() => setTab('staff')}>
-          <Text style={tw`text-sm font-bold ${tab === 'staff' ? 'text-primary' : 'text-slate-500'}`}>Staff</Text>
+          <Text style={tw`text-sm font-interBold ${tab === 'staff' ? 'text-primary' : 'text-slate-500'}`}>Staff</Text>
         </TouchableOpacity>
       </View>
 
@@ -78,9 +78,9 @@ function UpgradesTab({ gameState }) {
                 {!maxed ? (
                    <>
                       <Text style={tw`text-[16px] text-green-500`}>💵</Text>
-                      <Text style={tw`text-slate-700 font-black text-sm`}>$\{(cost).toLocaleString()}</Text>
+                      <Text style={tw`text-slate-700 font-interBlack text-sm`}>${(cost).toLocaleString()}</Text>
                    </>
-                ) : <Text style={tw`text-xs uppercase tracking-wider text-slate-400 font-black`}>Fully Upgraded</Text>}
+                ) : <Text style={tw`text-xs uppercase tracking-wider text-slate-400 font-interBlack`}>Fully Upgraded</Text>}
               </View>
               <TouchableOpacity
                 disabled={maxed || !canAfford}

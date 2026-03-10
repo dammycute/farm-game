@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useFonts, Inter_400Regular, Inter_700Bold, Inter_900Black } from '@expo-google-fonts/inter';
 import tw from './src/styles';
 import { useGameState } from './src/useGameState';
 
@@ -15,6 +16,12 @@ import FinanceZone from './src/components/FinanceZone';
 import { ToastRenderer, FloatRenderer, LevelCompleteModal } from './src/components/OverlayKit';
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_700Bold,
+    Inter_900Black,
+  });
+
   const gameState = useGameState();
   const [tab, setTab] = useState('farm');
 
@@ -24,7 +31,7 @@ export default function App() {
       <View style={tw`flex-1 w-full max-w-md bg-white shadow-2xl relative overflow-hidden`}>
         <Header gameState={gameState} setTab={setTab} />
 
-        <View style={tw`flex-1 bg-backgroundLight relative`}>
+        <View style={tw`flex-1 bg-backgroundLight relative pt-[160px]`}>
           {tab === 'farm' && <FarmZone gameState={gameState} />}
           {tab === 'market' && <MarketZone gameState={gameState} />}
           {tab === 'factory' && <FactoryZone gameState={gameState} />}

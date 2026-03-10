@@ -16,12 +16,12 @@ export const WEATHER_TYPES = [
 ];
 
 export const PLOT_DEFS = {
-  henCoop: { icon: '🐔', name: 'Hen Coop', output: 'egg', baseRate: 10.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 8 },
-  feedFarm: { icon: '🌾', name: 'Feed Farm', output: 'feedWheat', baseRate: 15.0, feedNeeds: { water: 1 }, unlockCost: 80, maxLevel: 6 },
-  waterWell: { icon: '💧', name: 'Water Well', output: 'water', baseRate: 20.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
-  organicFarm: { icon: '🌿', name: 'Organic Coop', output: 'organic', baseRate: 4.0, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
-  hatchery: { icon: '🐣', name: 'Hatchery', output: 'freeRange', baseRate: 2.0, feedNeeds: { feedWheat: 1, feedCorn: 1, water: 2 }, unlockCost: 600, maxLevel: 4 },
-  cornField: { icon: '🌽', name: 'Corn Field', output: 'feedCorn', baseRate: 12.0, feedNeeds: { water: 1 }, unlockCost: 150, maxLevel: 6 },
+  henCoop: { icon: '🐔', iconName: 'home', name: 'Hen Coop', output: 'egg', baseRate: 10.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 8 },
+  feedFarm: { icon: '🌾', iconName: 'grass', name: 'Feed Farm', output: 'feedWheat', baseRate: 15.0, feedNeeds: { water: 1 }, unlockCost: 80, maxLevel: 6 },
+  waterWell: { icon: '💧', iconName: 'opacity', name: 'Water Well', output: 'water', baseRate: 20.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
+  organicFarm: { icon: '🌿', iconName: 'nature-people', name: 'Organic Coop', output: 'organic', baseRate: 4.0, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
+  hatchery: { icon: '🐣', iconName: 'egg', name: 'Hatchery', output: 'freeRange', baseRate: 2.0, feedNeeds: { feedWheat: 1, feedCorn: 1, water: 2 }, unlockCost: 600, maxLevel: 4 },
+  cornField: { icon: '🌽', iconName: 'terrain', name: 'Corn Field', output: 'feedCorn', baseRate: 12.0, feedNeeds: { water: 1 }, unlockCost: 150, maxLevel: 6 },
 };
 
 export const RECIPES = [
