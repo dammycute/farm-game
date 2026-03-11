@@ -49,6 +49,7 @@ export const TRUCK_TYPES = [
   { id: 'truck', icon: '🚚', name: 'Medium Truck', cap: 80, speed: 0.9, range: 2, cost: 700, routes: ['town', 'city'] },
   { id: 'semi', icon: '🚛', name: 'Semi Truck', cap: 200, speed: 0.8, range: 3, cost: 1800, routes: ['town', 'city', 'export'] },
   { id: 'ref', icon: '❄️', name: 'Refrigerator Truck', cap: 100, speed: 0.85, range: 2, cost: 1200, routes: ['premium'] },
+  { id: 'hyperloop', icon: '🛰️', name: 'Hyperloop Hauler', cap: 400, speed: 1.3, range: 4, cost: 5200, routes: ['town', 'city', 'export', 'premium', 'interstellar'] },
 ];
 
 export const ROUTES = [
@@ -56,6 +57,7 @@ export const ROUTES = [
   { id: 'city', icon: '🏙️', name: 'City Market', dist: 2, basePrice: 1.4, vol: 'medium', bonus: '$3.8/egg' },
   { id: 'export', icon: '✈️', name: 'Export Deal', dist: 4, basePrice: 2.0, vol: 'high', bonus: '$6/egg' },
   { id: 'premium', icon: '👑', name: 'Premium Hotels', dist: 2, basePrice: 2.8, vol: 'low', bonus: '$8/egg' },
+  { id: 'interstellar', icon: '🌌', name: 'Interstellar Supply', dist: 6, basePrice: 3.5, vol: 'extreme', bonus: '$12/egg' },
 ];
 
 export const CONTRACT_POOL = [
@@ -72,7 +74,7 @@ export const CONTRACT_POOL = [
 ];
 
 export const FARM_UPGRADES = [
-  { id: 'eggCap', icon: '📦', name: 'Egg Storage +50', desc: 'Expand total egg capacity.', cost: 200, effect: 'invCap.egg += 50', repeatable: true, count: 0, max: 10 },
+  { id: 'eggCap', icon: '📦', name: 'Egg Storage +50', desc: 'Expand total egg capacity.', cost: 200, effect: 'invCap.egg += 50', repeatable: true, count: 0, max: 20 },
   { id: 'feedRate', icon: '🌾', name: 'Feed Efficiency', desc: '25% less feed consumed per cycle.', cost: 150, effect: 'feedEff', repeatable: true, count: 0, max: 5 },
   { id: 'coopSpeed', icon: '⚡', name: 'Coop Speed Boost', desc: 'All coops produce 20% faster.', cost: 180, effect: 'coopSpeed', repeatable: true, count: 0, max: 6 },
   { id: 'waterEff', icon: '💧', name: 'Water Recycler', desc: '50% less water used.', cost: 220, effect: 'waterEff', repeatable: false, count: 0, max: 1 },

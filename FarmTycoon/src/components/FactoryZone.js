@@ -31,6 +31,37 @@ export default function FactoryZone({ gameState }) {
         )}
       </View>
 
+      {/* Staff Assignments */}
+      <View style={tw`mb-6`}>
+        <Text style={tw`text-xs font-interBlack text-slate-800 uppercase tracking-wider mb-2 px-1`}>Staff Assignment</Text>
+        {gameState.staff.length === 0 ? (
+          <View style={tw`bg-white rounded-2xl p-4 items-center shadow-sm border border-dashed border-slate-300`}>
+            <Text style={tw`text-xs font-bold text-slate-400`}>No staff yet — hire staff in the upgrade zone.</Text>
+          </View>
+        ) : (
+          <View style={tw`flex-col gap-2`}> 
+            {gameState.staff.map((s) => {
+              const task = s.assignedTask || 'none';
+              return (
+                <View key={s.id} style={tw`flex-row items-center justify-between bg-white border border-slate-200 rounded-xl p-2`}> 
+                  <View>
+                    <Text style={tw`text-sm font-black text-slate-800`}>{s.name || s.id}</Text>
+                    <Text style={tw`text-[9px] text-slate-500`}>Skill: {s.skill}</Text>
+                  </View>
+                  <View style={tw`flex-row gap-1`}>
+                    {['none', 'factory', 'harvest', 'delivery'].map((t) => (
+                      <TouchableOpacity key={`${s.id}-${t}`} onPress={() => gameStore.assignStaffTask(s.id, t)} style={tw`px-2 py-1 rounded-lg ${task === t ? 'bg-primary' : 'bg-slate-100'}`}>
+                        <Text style={tw`text-[9px] font-black ${task === t ? 'text-white' : 'text-slate-500'}`}>{t}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
       {/* Queue */}
       <View style={tw`mb-6`}>
         <Text style={tw`text-xs font-interBlack text-slate-800 uppercase tracking-wider mb-2 px-1`}>

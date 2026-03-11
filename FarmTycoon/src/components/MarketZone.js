@@ -49,7 +49,17 @@ export default function MarketZone({ gameState }) {
 
       {/* Contracts */}
       <View style={tw`mb-6`}>
-        <Text style={tw`text-xs font-interBlack text-slate-800 uppercase tracking-wider mb-3 px-1`}>Active Contracts</Text>
+        <View style={tw`flex-row justify-between items-center mb-3 px-1`}>
+          <Text style={tw`text-xs font-interBlack text-slate-800 uppercase tracking-wider`}>Active Contracts</Text>
+          <View style={tw`flex-row items-center gap-2`}>
+            <TouchableOpacity onPress={() => gameStore.refreshContracts()} style={tw`px-2 py-1 bg-slate-100 border border-slate-300 rounded-lg`}>
+              <Text style={tw`text-[9px] font-black uppercase text-slate-600`}>🔁 Refresh</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => gameStore.startSupplyRush()} style={tw`px-2 py-1 bg-amber-100 border border-amber-300 rounded-lg`}>
+              <Text style={tw`text-[9px] font-black uppercase text-amber-800`}>⚡ Rush</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         {activeContracts.length === 0 ? (
           <View style={tw`bg-white rounded-2xl p-6 items-center shadow-sm border border-slate-200`}>
               <Text style={tw`text-xs font-bold text-slate-400`}>No active contracts.</Text>
@@ -120,6 +130,17 @@ export default function MarketZone({ gameState }) {
                  );
              })}
          </View>
+      </View>
+
+      {/* Mini Games */}
+      <View style={tw`mb-16`}> 
+        <Text style={tw`text-xs font-black text-slate-800 uppercase tracking-wider mb-3 px-1`}>Market Mini-Game</Text>
+        <View style={tw`bg-white rounded-2xl p-4 border border-dashed border-slate-300`}> 
+          <Text style={tw`text-[10px] text-slate-600 mb-2`}>Activate short-term rush mode to boost trade sales and contract income by 50% (30s).</Text> 
+          <TouchableOpacity onPress={() => gameStore.startSupplyRush()} style={tw`bg-amber-500 py-2 rounded-lg items-center`}> 
+            <Text style={tw`text-xs font-black text-white`}>Start Supply Rush</Text> 
+          </TouchableOpacity>
+        </View>
       </View>
 
     </ScrollView>

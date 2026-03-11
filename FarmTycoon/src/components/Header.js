@@ -15,14 +15,28 @@ export default function Header({ gameState, setTab }) {
   let lvl = gameState.level || 1;
 
   if (gameState.levelReqs && gameState.levelReqs.length > 0) {
-    const req = gameState.levelReqs[0];
-    let val = 0;
-    if (req.type === 'revenue') val = gameState.totalRevenue;
-    if (req.type === 'cash') val = gameState.cash;
-    if (req.type === 'item') val = gameState.inv[req.target] || 0;
-    progress = Math.min(100, Math.floor((val / req.amount) * 100));
-    pText = `${val} / ${req.amount}`;
-    desc = req.desc;
+    const entries = gameState.levelReqs.map((req) => {
+      let val = 0;
+      if (req.type === 'revenue') val = gameState.totalRevenue;
+      if (req.type === 'cash') val = gameState.cash;
+      if (req.type === 'item') val = gameState.inv[req.target] || 0;
+      if (req.type === 'contractsDone') val = gameState.contractsFulfilled || 0;
+      if (req.type === 'staffCount') val = gameState.staff.length || 0;
+      if (req.type === 'plotCount') val = gameState.plots.filter((p) => p.unlocked).length;
+      if (req.type === 'plotLevel') {
+        const p = gameState.plots.find((p) => p.type === req.target);
+        val = p ? p.level : 0;
+      }
+
+      const pct = req.amount > 0 ? Math.min(100, Math.floor((val / req.amount) * 100)) : 0;
+      return { req, val, pct };
+    });
+
+    const totalPct = entries.reduce((acc, e) => acc + e.pct, 0);
+    progress = Math.floor(totalPct / entries.length);
+    const completed = entries.filter((e) => e.pct >= 100).length;
+    pText = `${completed}/${entries.length} goals`
+    desc = entries.find((e) => e.pct < 100)?.req.desc || entries[0].req.desc;
   }
 
   return (

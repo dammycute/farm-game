@@ -24,6 +24,8 @@ const DEF = {
     lifetimeEggs: 0,
     prestige: 0,
     prestigeMult: 1,
+    farmStars: 0,
+    farmTitle: '🌱 Rookie Farmer',
 
     inv: {
         egg: 0, feedWheat: 100, feedCorn: 50, water: 100,
@@ -52,6 +54,9 @@ const DEF = {
 
     contracts: [],
     contractsRefreshed: 0,
+    rushMode: false,
+    rushTimer: 0,
+    foxVisible: false,
 
     ledger: [],
     dailyRevenue: 0,
@@ -115,6 +120,13 @@ class GameEngine {
         if (!this.G.inv) this.G.inv = { ...DEF.inv };
 
         if (this.G.contracts.length === 0) this.generateContracts(3);
+        // Keep old saves consistent with new star/title progression
+        if (this.G.farmStars == null) {
+            this.G.farmStars = Math.max(0, (this.G.level || 1) - 1);
+        }
+        if (!this.G.farmTitle) {
+            this.G.farmTitle = this.getFarmRankTitle(this.G.level || 1);
+        }
         if (!this.G.levelReqs || this.G.levelReqs.length === 0) this.generateLevelGoals();
 
         this.startTick();
@@ -401,7 +413,21 @@ class GameEngine {
         this.G.totalRevenue += earned;
         this.G.dailyRevenue += earned;
         this.addLedger(`🚚 ${truck.name} delivered ${truck.load} units → ${route?.name}`, earned, 'truck');
-        
+
+        // Random route event for extra flavor
+        if (Math.random() < 0.12) {
+          const bonus = Math.floor(earned * 0.25);
+          this.G.cash += bonus;
+          this.G.totalRevenue += bonus;
+          this.G.dailyRevenue += bonus;
+          this.showToast(`🚀 Lucky route! +$${bonus} bonus from fast delivery.`);
+        } else if (Math.random() < 0.08) {
+          const delay = Math.floor(earned * 0.15);
+          this.G.cash -= delay;
+          this.G.totalExpenses += delay;
+          this.showToast(`🛑 Road delay cost: -$${delay}.`);
+        }
+
         truck.status = 'idle';
         truck.tripProgress = 0;
         truck.load = 0;
@@ -422,7 +448,8 @@ class GameEngine {
     }
 
     const hasDriver = this.G.staff.some((s) => s.skill === 'truckBonus');
-    if (hasDriver && this.G.tick % 10 === 0) {
+    const hasDeliveryAssign = this.G.staff.some((s) => s.assignedTask === 'delivery');
+    if ((hasDriver || hasDeliveryAssign) && this.G.tick % 10 === 0) {
       this.G.trucks.forEach((truck) => {
         if (truck.active && truck.status === 'idle') {
           const availEggs = Math.floor(this.G.inv.egg || 0);
@@ -432,7 +459,8 @@ class GameEngine {
             if (tDef) {
               const routes = tDef.routes.map((rId) => ROUTES.find((r) => r.id === rId)).filter(Boolean);
               if (routes.length > 0) {
-                const bestRoute = routes.sort((a, b) => b.basePrice - a.basePrice)[0];
+                const skew = hasDeliveryAssign ? 0.1 : 0;
+                const bestRoute = routes.sort((a, b) => (b.basePrice + (Math.random() * skew)) - (a.basePrice + (Math.random() * skew)))[0];
                 this.dispatchTruck(truck.id, bestRoute.id, true);
               }
             }
@@ -440,6 +468,66 @@ class GameEngine {
         }
       });
     }
+
+    // Auto factory contract production by assigned staff
+    if (this.G.staff.some((s) => s.assignedTask === 'factory')) {
+      if (this.G.tick % 8 === 0) {
+        this.autoCraftForContracts();
+      }
+    }
+
+    // Rush event countdown
+    if (this.G.rushMode && this.G.rushTimer > 0) {
+      this.G.rushTimer -= 1;
+      if (this.G.rushTimer === 0) {
+        this.G.rushMode = false;
+        this.showToast('⏱️ Rush ended! Back to normal trading.');
+      }
+    }
+  }
+
+  autoCraftForContracts() {
+    const openContracts = this.G.contracts.filter((c) => !c.accepted);
+    if (!openContracts.length) return;
+    let queued = false;
+
+    for (const contract of openContracts) {
+      const needed = Math.max(0, contract.qty - (this.G.inv[contract.want] || 0));
+      if (needed <= 0) continue;
+      const recipe = RECIPES.find((r) => r.output === contract.want);
+      if (!recipe) continue;
+      const canQueue = Object.entries(recipe.inputs).every(([item, qty]) => (this.G.inv[item] || 0) >= qty);
+      if (!canQueue) continue;
+      if (this.G.factoryQueue.length >= this.G.factorySlots * 2) break;
+
+      // queue one unit of this recipe
+      this.queueRecipe(recipe.id);
+      queued = true;
+      if (queued) break;
+    }
+
+    if (queued) {
+      this.showToast('👨‍🍳 Staff are preparing contract goods for you!');
+    }
+  }
+
+  assignStaffTask(staffId, task) {
+    const staff = this.G.staff.find((s) => s.id === staffId);
+    if (!staff) return;
+    staff.assignedTask = task;
+    this.showToast(`🛠️ ${staff.name || staff.id} assigned to ${task}.`);
+    this.notify();
+  }
+
+  startSupplyRush() {
+    if (this.G.rushMode) {
+      this.showToast('⚠️ A rush is already active!');
+      return;
+    }
+    this.G.rushMode = true;
+    this.G.rushTimer = 30; // 30 seconds
+    this.showToast('🔥 SUPPLY RUSH STARTED! +50% earnings for 30s');
+    this.notify();
   }
 
   tickContracts() {
@@ -521,37 +609,68 @@ class GameEngine {
       // 1. Financial Goal (Revenue or Cash)
       const isCash = Math.random() > 0.5;
       if (isCash) {
-          const amt = Math.floor(5000 * scale);
+          const amt = Math.floor(5000 * scale * (1 + lvl/25));
           reqs.push({ type: 'cash', amount: amt, desc: `Hold $${amt.toLocaleString()} Cash` });
       } else {
-          const amt = Math.floor(10000 * scale);
+          const amt = Math.floor(10000 * scale * (1 + lvl/20));
           reqs.push({ type: 'revenue', amount: amt, desc: `Earn $${amt.toLocaleString()} Total Revenue` });
       }
 
-      // 2. Operational Goal (Plots or Staff)
+      // 2. Operational Goal (Plot upgrade or staff growth)
       const isPlot = Math.random() > 0.4;
       if (isPlot) {
-          const plotLvl = Math.min(8, Math.floor(2 + lvl/3));
+          const plotLvl = Math.min(12, Math.floor(2 + lvl/2.5));
           reqs.push({ type: 'plotLevel', target: 'henCoop', amount: plotLvl, desc: `Upgrade Hen Coop to Lv ${plotLvl}` });
       } else {
-          const count = Math.min(6, Math.floor(2 + lvl/4));
+          const count = Math.min(8, Math.floor(2 + lvl/3));
           reqs.push({ type: 'staffCount', amount: count, desc: `Manage a team of ${count} Staff` });
       }
 
-      // 3. Market Goal (Contracts or Specific Item)
-      const isContract = Math.random() > 0.5;
+      // 3. Market Goal (Contracts or Store item)
+      const isContract = Math.random() > 0.45;
       if (isContract) {
-          const count = Math.floor(this.G.contractsFulfilled + (5 * scale));
+          const count = Math.max(10, Math.floor(this.G.contractsFulfilled + (6 * scale)));
           reqs.push({ type: 'contractsDone', amount: count, desc: `Fulfill ${count} Total Contracts` });
       } else {
-          const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'vaccine'];
-          const targetItem = advancedItems[Math.floor(Math.random() * Math.min(lvl - 2, advancedItems.length))];
-          const qty = Math.floor(10 * scale);
+          const advancedItems = ['powdered', 'mayo', 'omelette', 'cake', 'custard', 'vaccine'];
+          const itemIndex = Math.min(advancedItems.length - 1, Math.max(0, lvl - 3));
+          const targetItem = advancedItems[Math.floor(Math.random() * (itemIndex + 1))];
+          const qty = Math.floor(10 * scale * (1 + lvl/15));
           reqs.push({ type: 'item', target: targetItem, amount: qty, desc: `Hoard ${qty} ${targetItem}s` });
+      }
+
+      // 4. Endgame stretch goal starts at lvl 7+ to keep progression meaningful
+      if (lvl >= 7) {
+          const targetPlots = Math.min(6, Math.max(4, Math.floor(3 + lvl / 3)));
+          reqs.push({ type: 'plotCount', amount: targetPlots, desc: `Control at least ${targetPlots} Plots` });
+      }
+
+      // 5. Legendary mastery goal at lvl 12+
+      if (lvl >= 12) {
+          const requiredStaff = Math.min(10, Math.floor(3 + lvl / 2));
+          reqs.push({ type: 'staffCount', amount: requiredStaff, desc: `Assemble ${requiredStaff} staff for Mega Operations` });
       }
     }
 
     this.G.levelReqs = reqs;
+  }
+
+  getFarmRankTitle(level) {
+    const titles = [
+      '🌱 Rookie Farmer',
+      '🚜 Apprentice Rancher',
+      '🏡 Commercial Grower',
+      '🌾 Farm Manager',
+      '🧑‍🌾 Agro Tycoon',
+      '🏭 Industrial Baron',
+      '🌍 Global Distributor',
+      '⭐ Legacy Legend',
+      '🌌 Cosmic Cultivator',
+      '👑 Harvest Sovereign',
+    ];
+    const idx = Math.max(0, Math.min(level - 1, titles.length - 1));
+    const suffix = level > titles.length ? ` (Level ${level})` : '';
+    return `${titles[idx]}${suffix}`;
   }
 
   checkLevelProgress() {
@@ -585,6 +704,9 @@ class GameEngine {
     this.G.levelCompletePopup = false;
     this.G.level++;
     this.G.prestigeMult += 0.5;
+    this.G.prestige += 1;
+    this.G.farmStars = (this.G.farmStars || 0) + 1;
+    this.G.farmTitle = this.getFarmRankTitle(this.G.level);
 
     // Remove resets - we keep cash, inv, and plots!
     // Just generate the next set of goals
@@ -715,8 +837,9 @@ class GameEngine {
       cake: 37, custard: 18, vaccine: 200, feedWheat: 0.8, water: 0.3,
     };
     const basePrice = priceMap[goodId] || 1;
-    const earn = Math.floor(qty * basePrice * this.getPriceMultiplier());
-    
+    let earn = Math.floor(qty * basePrice * this.getPriceMultiplier());
+    if (this.G.rushMode) earn = Math.floor(earn * 1.5);
+
     this.G.inv[goodId] -= qty;
     this.G.cash += earn;
     this.G.totalRevenue += earn;
@@ -738,7 +861,8 @@ class GameEngine {
       return;
     }
     this.G.inv[c.want] -= c.qty;
-    const earn = Math.floor(c.qty * c.pricePerUnit * this.getPriceMultiplier());
+    let earn = Math.floor(c.qty * c.pricePerUnit * this.getPriceMultiplier());
+    if (this.G.rushMode) earn = Math.floor(earn * 1.5);
     this.G.cash += earn;
     this.G.totalRevenue += earn;
     this.G.dailyRevenue += earn;
@@ -874,15 +998,18 @@ class GameEngine {
   }
 
   refreshContracts() {
-    const cost = 50;
-    if (this.G.cash < cost) {
+    const active = this.G.contracts.filter((c) => !c.accepted);
+    const cost = active.length === 0 ? 0 : 50;
+    if (cost > 0 && this.G.cash < cost) {
       this.showToast(`Refresh costs $${cost}`);
       return;
     }
-    this.G.cash -= cost;
+    if (cost > 0) this.G.cash -= cost;
+
     this.G.contracts = this.G.contracts.filter((c) => c.accepted);
     this.generateContracts(4);
-    this.showToast('Contracts refreshed!');
+    this.G.contractsRefreshed = (this.G.contractsRefreshed || 0) + 1;
+    this.showToast(cost === 0 ? '🔁 Free refresh after contract completion!' : 'Contracts refreshed!');
     this.notify();
   }
   // ---- DEV TOOLS ----
