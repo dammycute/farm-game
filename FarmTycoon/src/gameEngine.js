@@ -56,7 +56,15 @@ const DEF = {
     contractsRefreshed: 0,
     rushMode: false,
     rushTimer: 0,
-    foxVisible: false,
+
+    miniGames: [
+      { id: 'puzzle_match', name: 'Image Sort', unlocked: true, price: 0, desc: 'Guess how many pieces are in the image.' },
+      { id: 'fox_hunter', name: 'Fox Hunter', unlocked: false, price: 4000, desc: 'Tap foxes as they appear.' },
+      { id: 'tetris_tap', name: 'Tetris Tap', unlocked: false, price: 5000, desc: 'Drop blocks and clear rows in mini tetris.' },
+    ],
+    miniGameProgress: { puzzle_match: 0, fox_hunter: 0, tetris_tap: 0 },
+    miniGameAchievements: {},
+    activeMiniGame: null,
 
     ledger: [],
     dailyRevenue: 0,
@@ -118,6 +126,8 @@ class GameEngine {
         if (!this.G.milestones) this.G.milestones = {};
         if (!this.G.contractsFulfilled) this.G.contractsFulfilled = 0;
         if (!this.G.inv) this.G.inv = { ...DEF.inv };
+        if (!this.G.miniGameProgress) this.G.miniGameProgress = { puzzle_match: 0, fox_hunter: 0, tetris_tap: 0 };
+        if (!this.G.miniGameAchievements) this.G.miniGameAchievements = {};
 
         if (this.G.contracts.length === 0) this.generateContracts(3);
         // Keep old saves consistent with new star/title progression
@@ -249,42 +259,7 @@ class GameEngine {
         if (this.G.ledger.length > 30) this.G.ledger.pop();
     }
 
-    randomEventCheck() {
-        // 5% chance every 10 seconds to get a fox
-        if (Math.random() < 0.05) {
-            // Trigger fox event
-            this.spawnFox();
-        }
-    }
-
-    spawnFox() {
-        this.showToast('🦊 Fox Attack! Tap it quickly before it steals eggs!');
-        // In react context, we will handle fox in a specific view component. Let's just create an event flag:
-        this.G.foxVisible = true;
-        this.notify();
-        setTimeout(() => {
-            if (this.G.foxVisible) {
-                this.G.foxVisible = false;
-                // Steal eggs!
-                let eggsToSteal = Math.floor((this.G.inv.egg || 0) * 0.15); // steals 15%
-                if (eggsToSteal > 0) {
-                    this.G.inv.egg -= eggsToSteal;
-                    this.showToast(`😢 The fox got away with ${eggsToSteal} eggs!`);
-             }
-             this.notify();
-         }
-      }, Math.random() * 2000 + 3000); // 3-5 seconds to tap
-  }
-  
-  catchFox() {
-      if (this.G.foxVisible) {
-          this.G.foxVisible = false;
-          let reward = 20 + Math.floor(Math.random() * 80);
-          this.G.cash += reward;
-          this.showToast(`🎉 You chased the fox! +$${reward}`);
-          this.notify();
-      }
-  }
+    // fox event removed; replaced by dedicated mini-game store events
 
   // ---- TICK LOGIC -----
   startTick() {
@@ -312,9 +287,7 @@ class GameEngine {
     if (G.frenzyActive > 0) G.frenzyActive--;
 
     // 10 second loop
-    if (G.tick % 10 === 0) {
-        this.randomEventCheck();
-    }
+    // Side mini-games and events managed distinct from base farm processing
 
     this.autoStaffActions();
 
@@ -492,22 +465,36 @@ class GameEngine {
     let queued = false;
 
     for (const contract of openContracts) {
+      if (contract.want === 'egg') {
+        if ((this.G.inv.egg || 0) >= contract.qty) {
+          this.acceptContract(contract.id);
+          queued = true;
+          break;
+        }
+        continue;
+      }
+
       const needed = Math.max(0, contract.qty - (this.G.inv[contract.want] || 0));
-      if (needed <= 0) continue;
+      if (needed <= 0) {
+        this.acceptContract(contract.id);
+        queued = true;
+        break;
+      }
       const recipe = RECIPES.find((r) => r.output === contract.want);
       if (!recipe) continue;
-      const canQueue = Object.entries(recipe.inputs).every(([item, qty]) => (this.G.inv[item] || 0) >= qty);
-      if (!canQueue) continue;
       if (this.G.factoryQueue.length >= this.G.factorySlots * 2) break;
 
-      // queue one unit of this recipe
-      this.queueRecipe(recipe.id);
-      queued = true;
-      if (queued) break;
+      const recipeQueued = this.queueRecipe(recipe.id);
+      if (recipeQueued) {
+        queued = true;
+        break;
+      }
     }
 
     if (queued) {
       this.showToast('👨‍🍳 Staff are preparing contract goods for you!');
+    } else {
+      this.showToast('👨‍🍳 Staff are ready, but no contract-friendly production is available right now.');
     }
   }
 
@@ -530,6 +517,60 @@ class GameEngine {
     this.notify();
   }
 
+  unlockMiniGame(gameId) {
+    const game = this.G.miniGames.find((g) => g.id === gameId);
+    if (!game) return;
+    if (game.unlocked) {
+      this.showToast('Mini-game already unlocked.');
+      return;
+    }
+    if (this.G.cash < game.price) {
+      this.showToast(`Need $${game.price} to unlock ${game.name}.`);
+      return;
+    }
+    this.G.cash -= game.price;
+    game.unlocked = true;
+    this.showToast(`🕹️ ${game.name} unlocked! Find it in the Mini-Game store.`);
+    this.notify();
+  }
+
+  playMiniGame(gameId, extraPoints = 0) {
+    const game = this.G.miniGames.find((g) => g.id === gameId && g.unlocked);
+    if (!game) {
+      this.showToast('Mini-game unavailable. Unlock it first.');
+      return;
+    }
+    this.G.activeMiniGame = gameId;
+
+    // Base reward depends on difficulty + achievement
+    const baseReward = (gameId === 'puzzle_match' ? 100 : gameId === 'fox_hunter' ? 180 : 220);
+    const streak = (this.G.miniGameProgress[gameId] || 0);
+    const bonus = Math.floor(Math.min(150, streak * 3));
+    const rewardCash = baseReward + bonus + extraPoints;
+
+    this.G.cash += rewardCash;
+    this.G.totalRevenue += rewardCash;
+    this.addLedger(`Mini-game ${game.name} reward`, rewardCash, 'minigame');
+
+    this.G.miniGameProgress = {
+      ...this.G.miniGameProgress,
+      [gameId]: (this.G.miniGameProgress[gameId] || 0) + 1,
+    };
+
+    // Achievements
+    if (!this.G.miniGameAchievements) this.G.miniGameAchievements = {};
+    if (!this.G.miniGameAchievements[gameId]) this.G.miniGameAchievements[gameId] = 0;
+    this.G.miniGameAchievements[gameId] += 1;
+
+    // Reward milestone extra stars
+    if (this.G.miniGameAchievements[gameId] % 10 === 0) {
+      this.G.farmStars = (this.G.farmStars || 0) + 1;
+      this.showToast(`⭐ You mastered ${game.name}! +1 farm star bonus`);
+    }
+
+    this.G.activeMiniGame = null;
+    this.notify();
+  }
   tickContracts() {
     this.G.contracts.forEach((c) => {
       if (!c.accepted) c.ticksLeft = (c.ticksLeft || 600) - 1;
@@ -804,14 +845,22 @@ class GameEngine {
   queueRecipe(recipeId) {
     const recipe = RECIPES.find((r) => r.id === recipeId);
     if (!recipe) return;
+    if (recipe.unlockLevel > (this.G.factoryLevel || 1)) {
+      this.showToast(`Unlock level ${recipe.unlockLevel} required for ${recipe.name}.`);
+      return;
+    }
+    if (recipe.unlockLevel > (this.G.factoryLevel || 1)) {
+      this.showToast(`Unlock level ${recipe.unlockLevel} required for ${recipe.name}.`);
+      return false;
+    }
     if (this.G.factoryQueue.length >= this.G.factorySlots * 2) {
       this.showToast('Factory queue full!');
-      return;
+      return false;
     }
     for (const [item, amt] of Object.entries(recipe.inputs)) {
       if ((this.G.inv[item] || 0) < amt) {
         this.showToast(`Need ${amt} ${item} (Tap plots to harvest!)`);
-        return;
+        return false;
       }
     }
     for (const [item, amt] of Object.entries(recipe.inputs)) this.G.inv[item] -= amt;
@@ -824,6 +873,7 @@ class GameEngine {
     });
     this.showToast(`🏭 Started: ${recipe.name}`);
     this.notify();
+    return true;
   }
 
   sellSpot(goodId, qty, coords = null) {

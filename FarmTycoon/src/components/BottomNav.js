@@ -11,6 +11,7 @@ export default function BottomNav({ tab, setTab }) {
           { id: 'farm', label: 'Farm', icon: 'agriculture' },
           { id: 'market', label: 'Town', icon: 'storefront' },
           { id: 'factory', label: 'Recipes', icon: 'menu-book' },
+          { id: 'mini', label: 'Mini', icon: 'sports-esports' },
           { id: 'upgrades', label: 'Upgrades', icon: 'trending-up' },
           { id: 'trucks', label: 'Trucks', icon: 'local-shipping' },
         ].map((item) => {

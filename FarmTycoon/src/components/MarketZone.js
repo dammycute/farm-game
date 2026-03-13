@@ -96,6 +96,30 @@ export default function MarketZone({ gameState }) {
         )}
       </View>
 
+      {/* Mini-Game Store */}
+      <View style={tw`mb-6`}> 
+        <Text style={tw`text-xs font-black text-slate-800 uppercase tracking-wider mb-3 px-1`}>Mini-Game Store</Text>
+        <View style={tw`bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex-col gap-2`}> 
+          {gameState.miniGames?.map((g) => (
+            <View key={g.id} style={tw`flex-row justify-between items-center bg-slate-50 p-2 rounded-lg`}> 
+              <View style={tw`flex-1`}>
+                <Text style={tw`text-xs font-black text-slate-700`}>{g.name}</Text>
+                <Text style={tw`text-[8px] text-slate-500`}>{g.desc}</Text>
+              </View>
+              {g.unlocked ? (
+                <TouchableOpacity onPress={() => gameStore.playMiniGame(g.id)} style={tw`px-2 py-1 bg-primary rounded-md`}>
+                  <Text style={tw`text-[9px] font-black text-white`}>Play</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => gameStore.unlockMiniGame(g.id)} style={tw`px-2 py-1 bg-amber-500 rounded-md`}>
+                  <Text style={tw`text-[9px] font-black text-white`}>Unlock $${g.price}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
+
       {/* Spot Market */}
       <View style={tw`mb-6`}>
          <Text style={tw`text-xs font-black text-slate-800 uppercase tracking-wider mb-3 px-1`}>Spot Market</Text>

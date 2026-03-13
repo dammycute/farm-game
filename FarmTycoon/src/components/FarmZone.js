@@ -159,13 +159,6 @@ export default function FarmZone({ gameState }) {
             </View>
          )}
 
-         {/* Fox Overlay Render */}
-         {gameState.foxVisible && (
-            <TouchableOpacity style={tw`absolute w-24 h-24 top-1/2 left-1/4 z-50 rounded-full items-center justify-center bg-orange-400 border-4 border-red-500 shadow-xl`} onPress={() => gameStore.catchFox()}>
-               <Text style={tw`text-5xl`}>🦊</Text>
-               <Text style={tw`text-[10px] font-black uppercase text-white mt-1 bg-black/50 px-2 rounded`}>CATCH ME!</Text>
-            </TouchableOpacity>
-         )}
       </ScrollView>
    );
 }

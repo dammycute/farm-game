@@ -10,6 +10,7 @@ import BottomNav from './src/components/BottomNav';
 import FarmZone from './src/components/FarmZone';
 import MarketZone from './src/components/MarketZone';
 import FactoryZone from './src/components/FactoryZone';
+import MiniGameZone from './src/components/MiniGameZone';
 import UpgradesZone from './src/components/UpgradesZone';
 import TrucksZone from './src/components/TrucksZone';
 import FinanceZone from './src/components/FinanceZone';
@@ -35,6 +36,7 @@ export default function App() {
           {tab === 'farm' && <FarmZone gameState={gameState} />}
           {tab === 'market' && <MarketZone gameState={gameState} />}
           {tab === 'factory' && <FactoryZone gameState={gameState} />}
+          {tab === 'mini' && <MiniGameZone gameState={gameState} />}
           {tab === 'upgrades' && <UpgradesZone gameState={gameState} />}
           {tab === 'trucks' && <TrucksZone gameState={gameState} />}
           {tab === 'finance' && <FinanceZone gameState={gameState} />}

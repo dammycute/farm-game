@@ -16,7 +16,7 @@ export const WEATHER_TYPES = [
 ];
 
 export const PLOT_DEFS = {
-  henCoop: { icon: '🐔', iconName: 'home', name: 'Hen Coop', output: 'egg', baseRate: 10.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 8 },
+  henCoop: { icon: '🐔', iconName: 'home', name: 'Hen Coop', output: 'egg', baseRate: 10.0, feedNeeds: { feedWheat: 1, water: 1 }, unlockCost: 0, maxLevel: 12 },
   feedFarm: { icon: '🌾', iconName: 'grass', name: 'Feed Farm', output: 'feedWheat', baseRate: 15.0, feedNeeds: { water: 1 }, unlockCost: 80, maxLevel: 6 },
   waterWell: { icon: '💧', iconName: 'opacity', name: 'Water Well', output: 'water', baseRate: 20.0, feedNeeds: {}, unlockCost: 120, maxLevel: 6 },
   organicFarm: { icon: '🌿', iconName: 'nature-people', name: 'Organic Coop', output: 'organic', baseRate: 4.0, feedNeeds: { feedCorn: 2, water: 1 }, unlockCost: 400, maxLevel: 5 },
