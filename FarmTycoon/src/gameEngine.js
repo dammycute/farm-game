@@ -221,6 +221,18 @@ class GameEngine {
   _getPayroll(gameState) { return gameState.staff.reduce((a, s) => a + s.salary, 0); }
   _getFactorySpeed(gameState) { return 1 + this._getStaffBonus(gameState, 'factorySpeed'); }
 
+  _getFactoryConcurrency(gameState) {
+    const base = Math.max(1, gameState.factorySlots || 1);
+    const expansionBonus = Math.floor((gameState.factoryLevel || 1) / 2);
+    return base + expansionBonus;
+  }
+
+  _getFactoryQueueDepth(gameState) {
+    const slots = Math.max(1, gameState.factorySlots || 1);
+    const levelBonus = Math.max(1, gameState.factoryLevel || 1);
+    return slots * (1 + levelBonus);
+  }
+
   getPriceMultiplier() { return this._getPriceMultiplier(this.G); }
   getProductionMultiplier() { return this._getProductionMultiplier(this.G); }
   getCurrentWeather() { return this._getCurrentWeather(this.G); }
@@ -357,14 +369,15 @@ class GameEngine {
   processFactory() {
     if (this.G.factoryQueue.length === 0) return;
     const speed = this._getFactorySpeed(this.G);
-    const active = this.G.factoryQueue.slice(0, this.G.factorySlots);
+    const concurrency = this._getFactoryConcurrency(this.G);
+    const active = this.G.factoryQueue.slice(0, concurrency);
 
     active.forEach(job => {
       job.progress = (job.progress || 0) + (1 / job.totalTime) * speed;
     });
 
     // Separate completed jobs, keep incomplete
-    const completed = this.G.factoryQueue.filter(q => q.progress >= 1 && this.G.factoryQueue.indexOf(q) < this.G.factorySlots);
+    const completed = this.G.factoryQueue.filter((q, idx) => idx < concurrency && q.progress >= 1);
     completed.forEach(job => {
       this.G.inv[job.output] = (this.G.inv[job.output] || 0) + job.qty;
       this.addLedger(`🏭 Produced ${job.qty}× ${job.name}`, 0, 'factory');
@@ -468,7 +481,7 @@ class GameEngine {
     }
 
     // Then, queue crafting if we have queue space and ingredients
-    if (G.factoryQueue.length >= G.factorySlots * 2) return;
+    if (G.factoryQueue.length >= this._getFactoryQueueDepth(G)) return;
 
     for (const contract of openContracts) {
       if (contract.want === 'egg') continue; // eggs don't need crafting
@@ -802,7 +815,7 @@ class GameEngine {
       this.showToast(`Factory Level ${recipe.unlockLevel} required.`, true);
       return false;
     }
-    if (this.G.factoryQueue.length >= this.G.factorySlots * 2) {
+    if (this.G.factoryQueue.length >= this._getFactoryQueueDepth(this.G)) {
       this.showToast('Factory queue full!', true);
       return false;
     }
