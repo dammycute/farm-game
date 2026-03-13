@@ -11,38 +11,38 @@ export default function Header({ gameState, setTab }) {
 
   let progress = 0;
   let desc = 'Loading...';
-  let pText = '0%';
   let lvl = gameState.level || 1;
 
   if (gameState.levelReqs && gameState.levelReqs.length > 0) {
-    const entries = gameState.levelReqs.map((req) => {
+    const entries = gameState.levelReqs.map(req => {
       let val = 0;
       if (req.type === 'revenue') val = gameState.totalRevenue;
       if (req.type === 'cash') val = gameState.cash;
       if (req.type === 'item') val = gameState.inv[req.target] || 0;
-      if (req.type === 'contractsDone') val = gameState.contractsFulfilled || 0;
+      if (req.type === 'contractsDelta') val = (gameState.contractsFulfilled || 0) - (req.base || 0);
       if (req.type === 'staffCount') val = gameState.staff.length || 0;
-      if (req.type === 'plotCount') val = gameState.plots.filter((p) => p.unlocked).length;
+      if (req.type === 'plotCount') val = gameState.plots.filter(p => p.unlocked).length;
       if (req.type === 'plotLevel') {
-        const p = gameState.plots.find((p) => p.type === req.target);
+        const p = gameState.plots.find(p => p.type === req.target);
         val = p ? p.level : 0;
       }
-
       const pct = req.amount > 0 ? Math.min(100, Math.floor((val / req.amount) * 100)) : 0;
       return { req, val, pct };
     });
 
     const totalPct = entries.reduce((acc, e) => acc + e.pct, 0);
     progress = Math.floor(totalPct / entries.length);
-    const completed = entries.filter((e) => e.pct >= 100).length;
-    pText = `${completed}/${entries.length} goals`
-    desc = entries.find((e) => e.pct < 100)?.req.desc || entries[0].req.desc;
+    const completed = entries.filter(e => e.pct >= 100).length;
+    desc = entries.find(e => e.pct < 100)?.req.desc || entries[0].req.desc;
   }
 
   return (
-    <LinearGradient colors={['rgba(15,23,42,0.8)', 'transparent']} style={tw`absolute top-0 left-0 right-0 z-20 px-4 pt-10 pb-8 pointer-events-box-none`}>
+    <LinearGradient
+      colors={['rgba(15,23,42,0.85)', 'transparent']}
+      style={tw`absolute top-0 left-0 right-0 z-20 px-4 pt-10 pb-8 pointer-events-box-none`}
+    >
       <View style={tw`flex-row justify-between items-center z-30 mb-3`}>
-        {/* Eggs Pillar */}
+        {/* Eggs */}
         <View style={tw`flex-row items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 border-2 border-primary shadow-sm`}>
           <MaterialIcons name="egg" size={20} color="#ec5b13" />
           <View style={tw`-mt-1`}>
@@ -51,7 +51,7 @@ export default function Header({ gameState, setTab }) {
           </View>
         </View>
 
-        {/* Cash Pillar */}
+        {/* Cash */}
         <View style={tw`flex-row items-center gap-2 bg-white/90 rounded-full px-3 py-1.5 border-2 border-green-500 shadow-sm`}>
           <MaterialIcons name="payments" size={20} color="#16a34a" />
           <View style={tw`items-end -mt-1`}>
@@ -60,7 +60,7 @@ export default function Header({ gameState, setTab }) {
           </View>
         </View>
 
-        {/* Finance Btn */}
+        {/* Finance button */}
         <TouchableOpacity
           style={tw`w-8 h-8 rounded-full bg-white/90 border border-slate-200 items-center justify-center shadow-sm`}
           onPress={() => setTab('finance')}
@@ -69,33 +69,36 @@ export default function Header({ gameState, setTab }) {
         </TouchableOpacity>
       </View>
 
-      {/* Farm Title + Stars */}
+      {/* Rank + status */}
       <View style={tw`flex-row justify-between items-center px-1 mb-3`}>
         <Text style={tw`text-[10px] font-interBlack text-white bg-black/30 px-2 py-0.5 rounded-full`}>
           {gameState.farmTitle || '🌱 Rookie Farmer'}
         </Text>
         <View style={tw`flex-row items-center gap-1.5`}>
-          <Text style={tw`text-[10px] font-black text-amber-400`}>
-            {gameState.farmStars || 0}⭐
-          </Text>
+          <Text style={tw`text-[10px] font-black text-amber-400`}>{gameState.farmStars || 0}⭐</Text>
+          {gameState.rushMode && (
+            <Text style={tw`text-[10px] font-black text-white bg-amber-500/90 px-2 py-0.5 rounded-full`}>
+              🔥 Rush!
+            </Text>
+          )}
           {gameState.festivalActive > 0 && (
-            <Text style={tw`text-[10px] font-black text-white bg-primary/80 px-2 py-0.5 rounded-full`}>
+            <Text style={tw`text-[10px] font-black text-white bg-purple-500/90 px-2 py-0.5 rounded-full`}>
               🎪 Festival!
             </Text>
           )}
         </View>
       </View>
 
-      {/* Level Progress */}
+      {/* Level progress bar */}
       {gameState.levelReqs && gameState.levelReqs.length > 0 && (
         <View style={tw`flex flex-col gap-1 z-30 px-1`}>
           <View style={tw`flex-row justify-between items-end`}>
             <Text style={tw`text-[10px] font-interBlack text-white bg-black/40 px-1.5 rounded`}>LVL {lvl}</Text>
-            <Text style={tw`text-[9px] font-interBold text-white bg-black/40 px-1.5 rounded flex-1 text-center mx-1`}>{desc}</Text>
+            <Text style={tw`text-[9px] font-interBold text-white bg-black/40 px-1.5 rounded flex-1 text-center mx-1`} numberOfLines={1}>{desc}</Text>
             <Text style={tw`text-[9px] font-interBold text-white`}>{progress}%</Text>
           </View>
-          <View style={tw`h-2 w-full bg-slate-200/30 rounded-full overflow-hidden border border-white/20 shadow-sm`}>
-            <View style={[tw`h-full bg-primary rounded-full`, { width: `${progress}%`, shadowColor: '#ec5b13', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.6, shadowRadius: 4 }]} />
+          <View style={tw`h-2 w-full bg-slate-200/30 rounded-full overflow-hidden border border-white/20`}>
+            <View style={[tw`h-full bg-primary rounded-full`, { width: `${progress}%` }]} />
           </View>
         </View>
       )}
