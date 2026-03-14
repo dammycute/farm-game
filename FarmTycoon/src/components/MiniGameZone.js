@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Image, Dimensions, Platform } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS, useDerivedValue } from 'react-native-reanimated';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import tw from '../styles';
 import gameStore from '../gameEngine';
 
@@ -17,7 +19,11 @@ const GRID_SIZES = [
   { label: '5×5 Hard', rows: 5, cols: 5 },
 ];
 
-const PUZZLE_SIZE = Dimensions.get('window').width - 64;
+const WINDOW_WIDTH = Dimensions.get('window').width;
+const WINDOW_HEIGHT = Dimensions.get('window').height;
+const MAX_PUZZLE_SIZE = Platform.OS === 'web' ? 300 : 380;
+const PUZZLE_SIZE = Math.min(WINDOW_WIDTH - 64, WINDOW_HEIGHT * 0.4, MAX_PUZZLE_SIZE);
+const GRID_BG = '#0f172a'; // Darker Slate-950 for better contrast
 
 // ─── Spin wheel prizes ─────────────────────────────────────────────────────────
 const WHEEL_PRIZES = [
@@ -139,17 +145,16 @@ function HubScreen({ gameState, setScreen }) {
   );
 }
 
-// ─── Real Image Puzzle ─────────────────────────────────────────────────────────
+// ─── Real Image Puzzle (DRAG MODE) ─────────────────────────────────────────────
 function PuzzleGame({ onBack }) {
   const [phase, setPhase] = useState('config');
   const [imageIdx, setImageIdx] = useState(0);
   const [gridSize, setGridSize] = useState(GRID_SIZES[0]);
   const [tiles, setTiles] = useState([]);
-  const [selected, setSelected] = useState(null);
   const [moves, setMoves] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef(null);
-  const solvedRef = useRef(false); // track solved inside setTiles updater safely
+  const solvedRef = useRef(false);
   const elapsedRef = useRef(0);
   const movesRef = useRef(0);
 
@@ -175,7 +180,6 @@ function PuzzleGame({ onBack }) {
     } while (shuffled.every((v, i) => v === i));
 
     setTiles(shuffled);
-    setSelected(null);
     setMoves(0);
     setElapsed(0);
     setPhase('playing');
@@ -186,25 +190,16 @@ function PuzzleGame({ onBack }) {
     }, 1000);
   };
 
-  const tapTile = (idx) => {
-    if (phase !== 'playing') return;
-    if (selected === null) {
-      setSelected(idx);
-      return;
-    }
-    if (selected === idx) {
-      setSelected(null);
-      return;
-    }
-
-    const first = selected;
-    setSelected(null);
+  const swapTiles = (fromIdx, toIdx) => {
+    if (fromIdx === toIdx) return;
     movesRef.current++;
     setMoves(movesRef.current);
 
     setTiles(prev => {
       const next = [...prev];
-      [next[first], next[idx]] = [next[idx], next[first]];
+      [next[fromIdx], next[toIdx]] = [next[toIdx], next[fromIdx]];
+      
+      // Check if solved
       if (!solvedRef.current && next.every((v, i) => v === i)) {
         solvedRef.current = true;
         setTimeout(() => {
@@ -212,49 +207,10 @@ function PuzzleGame({ onBack }) {
           const score = Math.max(0, 300 - elapsedRef.current - movesRef.current * 2);
           gameStore.awardMiniGame('puzzle_image', score);
           setPhase('solved');
-        }, 0);
+        }, 300);
       }
       return next;
     });
-  };
-
-  const renderTile = (tileIdx, posIdx) => {
-    const sourceRow = Math.floor(tileIdx / gridSize.cols);
-    const sourceCol = tileIdx % gridSize.cols;
-    const isSelected = selected === posIdx;
-
-    return (
-      <TouchableOpacity
-        key={posIdx}
-        onPress={() => tapTile(posIdx)}
-        style={{
-          width: tileSize - 2,
-          height: tileSize - 2,
-          margin: 1,
-          overflow: 'hidden',
-          borderRadius: 4,
-          borderWidth: isSelected ? 3 : 1,
-          borderColor: isSelected ? '#3b82f6' : 'rgba(255,255,255,0.3)',
-        }}
-      >
-        <Image
-          source={{ uri: PUZZLE_IMAGES[imageIdx].uri }}
-          style={{
-            width: PUZZLE_SIZE,
-            height: PUZZLE_SIZE,
-            position: 'absolute',
-            top: -sourceRow * tileSize,
-            left: -sourceCol * tileSize,
-          }}
-          resizeMode="cover"
-        />
-        {movesRef.current < 3 && (
-          <View style={{ position: 'absolute', top: 2, left: 2, backgroundColor: 'rgba(0,0,0,0.45)', borderRadius: 3, paddingHorizontal: 3 }}>
-            <Text style={{ fontSize: 8, color: '#fff', fontWeight: '900' }}>{tileIdx + 1}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
   };
 
   if (phase === 'config') return (
@@ -314,7 +270,6 @@ function PuzzleGame({ onBack }) {
     </View>
   );
 
-  // Playing
   return (
     <View style={tw`flex-1 px-4 pt-4`}>
       <View style={tw`flex-row items-center justify-between mb-4`}>
@@ -330,13 +285,187 @@ function PuzzleGame({ onBack }) {
 
       <View style={tw`flex-row items-center gap-3 mb-4 bg-white border border-slate-200 rounded-xl p-2`}>
         <Image source={{ uri: PUZZLE_IMAGES[imageIdx].uri }} style={{ width: 48, height: 48, borderRadius: 8 }} resizeMode="cover" />
-        <Text style={tw`text-xs text-slate-500 flex-1`}>Tap one tile, then tap another to swap. Match the reference image ↑</Text>
+        <Text style={tw`text-xs text-slate-500 flex-1`}>DRAG tiles to swap them. Put the farm photo back together!</Text>
       </View>
 
-      <View style={{ alignSelf: 'center', width: PUZZLE_SIZE, flexDirection: 'row', flexWrap: 'wrap' }}>
-        {tiles.map((tileIdx, posIdx) => renderTile(tileIdx, posIdx))}
-      </View>
+      <ScrollView 
+        contentContainerStyle={tw`pb-20 pt-2`} 
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[tw`self-center p-4 rounded-3xl`, { backgroundColor: GRID_BG }]}>
+          <View style={{ width: PUZZLE_SIZE, height: PUZZLE_SIZE, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 12 }}>
+            {tiles.map((tileIdx, posIdx) => (
+              <PuzzleTile 
+                key={tileIdx} 
+                tileIdx={tileIdx} 
+                initialIdx={tileIdx}
+                currentPos={posIdx} 
+                gridSize={gridSize} 
+                tileSize={tileSize} 
+                imageUri={PUZZLE_IMAGES[imageIdx].uri}
+                onSwap={swapTiles}
+                moves={moves}
+              />
+            ))}
+          </View>
+        </View>
+        <Text style={tw`text-center text-[10px] text-slate-400 mt-4 uppercase font-black tracking-widest`}>
+          Match the pattern to win rewards 🏆
+        </Text>
+      </ScrollView>
     </View>
+  );
+}
+
+function PuzzleTile({ tileIdx, initialIdx, currentPos, gridSize, tileSize, imageUri, onSwap, moves }) {
+  const x = useSharedValue((currentPos % gridSize.cols) * tileSize);
+  const y = useSharedValue(Math.floor(currentPos / gridSize.cols) * tileSize);
+  const isDragging = useSharedValue(false);
+
+  useEffect(() => {
+    if (!isDragging.value) {
+      x.value = withSpring((currentPos % gridSize.cols) * tileSize, { damping: 20 });
+      y.value = withSpring(Math.floor(currentPos / gridSize.cols) * tileSize, { damping: 20 });
+    }
+  }, [currentPos]);
+
+  const gesture = Gesture.Pan()
+    .onStart(() => {
+      isDragging.value = true;
+    })
+    .onUpdate((event) => {
+      x.value = (currentPos % gridSize.cols) * tileSize + event.translationX;
+      y.value = Math.floor(currentPos / gridSize.cols) * tileSize + event.translationY;
+    })
+    .onEnd((event) => {
+      const finalX = x.value + tileSize / 2;
+      const finalY = y.value + tileSize / 2;
+      const col = Math.floor(finalX / tileSize);
+      const row = Math.floor(finalY / tileSize);
+      const newPos = row * gridSize.cols + col;
+      
+      isDragging.value = false;
+
+      if (newPos >= 0 && newPos < gridSize.rows * gridSize.cols && newPos !== currentPos) {
+        runOnJS(onSwap)(currentPos, newPos);
+      } else {
+        x.value = withSpring((currentPos % gridSize.cols) * tileSize);
+        y.value = withSpring(Math.floor(currentPos / gridSize.cols) * tileSize);
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: x.value }, { translateY: y.value }, { scale: withSpring(isDragging.value ? 1.08 : 1) }],
+    // Higher zIndex when dragging, otherwise ordered to allow overlap
+    zIndex: isDragging.value ? 1000 : (100 - currentPos),
+  }));
+
+  const sourceRow = Math.floor(initialIdx / gridSize.cols);
+  const sourceCol = initialIdx % gridSize.cols;
+  
+  // Decide which sides have tabs (Deterministic based on original position)
+  const hasRightTab = (initialIdx % gridSize.cols) < (gridSize.cols - 1);
+  const hasBottomTab = Math.floor(initialIdx / gridSize.cols) < (gridSize.rows - 1);
+
+  const tabSize = tileSize * 0.35;
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[{ position: 'absolute', width: tileSize, height: tileSize, overflow: 'visible' }, animatedStyle]}>
+        
+        {/* The Piece Body - Perfectly aligned, no margin */}
+        <View style={{
+          width: tileSize,
+          height: tileSize,
+          overflow: 'hidden',
+          backgroundColor: '#334155',
+          borderWidth: 0.2,
+          borderColor: 'rgba(255,255,255,0.2)',
+        }}>
+          <Image
+            source={{ uri: imageUri }}
+            style={{
+              width: PUZZLE_SIZE,
+              height: PUZZLE_SIZE,
+              position: 'absolute',
+              top: -sourceRow * tileSize,
+              left: -sourceCol * tileSize,
+            }}
+            resizeMode="cover"
+          />
+        </View>
+
+        {/* Right Tab (Overlap next piece) */}
+        {hasRightTab && (
+          <View style={{
+            position: 'absolute',
+            right: -tabSize / 1.5,
+            top: (tileSize - tabSize) / 2,
+            width: tabSize,
+            height: tabSize,
+            borderRadius: tabSize / 2,
+            overflow: 'hidden',
+            borderWidth: 0.5,
+            borderColor: 'rgba(255,255,255,0.1)',
+            shadowColor: '#000',
+            shadowOffset: { width: 1, height: 0 },
+            shadowOpacity: 0.2,
+            shadowRadius: 1,
+            elevation: 2,
+          }}>
+            <Image
+              source={{ uri: imageUri }}
+              style={{
+                width: PUZZLE_SIZE,
+                height: PUZZLE_SIZE,
+                position: 'absolute',
+                top: -sourceRow * tileSize - (tileSize - tabSize) / 2,
+                left: -sourceCol * tileSize - (tileSize - tabSize / 1.5),
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
+        {/* Bottom Tab (Overlap piece below) */}
+        {hasBottomTab && (
+          <View style={{
+            position: 'absolute',
+            bottom: -tabSize / 1.5,
+            left: (tileSize - tabSize) / 2,
+            width: tabSize,
+            height: tabSize,
+            borderRadius: tabSize / 2,
+            overflow: 'hidden',
+            borderWidth: 0.5,
+            borderColor: 'rgba(255,255,255,0.1)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 1,
+            elevation: 2,
+          }}>
+            <Image
+              source={{ uri: imageUri }}
+              style={{
+                width: PUZZLE_SIZE,
+                height: PUZZLE_SIZE,
+                position: 'absolute',
+                top: -sourceRow * tileSize - (tileSize - tabSize / 1.5),
+                left: -sourceCol * tileSize - (tileSize - tabSize) / 2,
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
+        {moves < 1 && (
+          <View style={{ position: 'absolute', top: tileSize/2-8, left: tileSize/2-8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, width: 16, height: 16, alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <Text style={{ fontSize: 8, color: '#fff', fontWeight: '900' }}>{initialIdx + 1}</Text>
+          </View>
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -460,83 +589,27 @@ function FoxGame({ onBack }) {
   );
 }
 
-// ─── Tetris Tap ────────────────────────────────────────────────────────────────
+
+// ─── Tetris Tap (Improved: No timer, level-based speed) ─────────────────────────
 const COLS = 8;
 const ROWS = 10;
 const emptyGrid = () => Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
 const TETROMINOES = [
-  {
-    id: 'I', color: '#06b6d4',
-    rotations: [
-      [[0,1],[1,1],[2,1],[3,1]],
-      [[2,0],[2,1],[2,2],[2,3]],
-      [[0,2],[1,2],[2,2],[3,2]],
-      [[1,0],[1,1],[1,2],[1,3]],
-    ],
-  },
-  {
-    id: 'O', color: '#f59e0b',
-    rotations: [
-      [[1,0],[2,0],[1,1],[2,1]],
-      [[1,0],[2,0],[1,1],[2,1]],
-      [[1,0],[2,0],[1,1],[2,1]],
-      [[1,0],[2,0],[1,1],[2,1]],
-    ],
-  },
-  {
-    id: 'T', color: '#8b5cf6',
-    rotations: [
-      [[1,0],[0,1],[1,1],[2,1]],
-      [[1,0],[1,1],[2,1],[1,2]],
-      [[0,1],[1,1],[2,1],[1,2]],
-      [[1,0],[0,1],[1,1],[1,2]],
-    ],
-  },
-  {
-    id: 'L', color: '#ef4444',
-    rotations: [
-      [[1,0],[1,1],[1,2],[2,2]],
-      [[0,1],[1,1],[2,1],[0,2]],
-      [[0,0],[1,0],[1,1],[1,2]],
-      [[2,0],[0,1],[1,1],[2,1]],
-    ],
-  },
-  {
-    id: 'J', color: '#22c55e',
-    rotations: [
-      [[1,0],[1,1],[1,2],[0,2]],
-      [[0,0],[0,1],[1,1],[2,1]],
-      [[2,0],[1,0],[1,1],[1,2]],
-      [[0,1],[1,1],[2,1],[2,2]],
-    ],
-  },
-  {
-    id: 'S', color: '#f43f5e',
-    rotations: [
-      [[1,0],[2,0],[0,1],[1,1]],
-      [[1,0],[1,1],[2,1],[2,2]],
-      [[1,1],[2,1],[0,2],[1,2]],
-      [[0,0],[0,1],[1,1],[1,2]],
-    ],
-  },
-  {
-    id: 'Z', color: '#0ea5e9',
-    rotations: [
-      [[0,0],[1,0],[1,1],[2,1]],
-      [[2,0],[1,1],[2,1],[1,2]],
-      [[0,1],[1,1],[1,2],[2,2]],
-      [[1,0],[0,1],[1,1],[0,2]],
-    ],
-  },
+  { id: 'I', color: '#06b6d4', rotations: [[[0,1],[1,1],[2,1],[3,1]],[[2,0],[2,1],[2,2],[2,3]],[[0,2],[1,2],[2,2],[3,2]],[[1,0],[1,1],[1,2],[1,3]]] },
+  { id: 'O', color: '#f59e0b', rotations: [[[1,0],[2,0],[1,1],[2,1]],[[1,0],[2,0],[1,1],[2,1]],[[1,0],[2,0],[1,1],[2,1]],[[1,0],[2,0],[1,1],[2,1]]] },
+  { id: 'T', color: '#8b5cf6', rotations: [[[1,0],[0,1],[1,1],[2,1]],[[1,0],[1,1],[2,1],[1,2]],[[0,1],[1,1],[2,1],[1,2]],[[1,0],[0,1],[1,1],[1,2]]] },
+  { id: 'L', color: '#ef4444', rotations: [[[1,0],[1,1],[1,2],[2,2]],[[0,1],[1,1],[2,1],[0,2]],[[0,0],[1,0],[1,1],[1,2]],[[2,0],[0,1],[1,1],[2,1]]] },
+  { id: 'J', color: '#22c55e', rotations: [[[1,0],[1,1],[1,2],[0,2]],[[0,0],[0,1],[1,1],[2,1]],[[2,0],[1,0],[1,1],[1,2]],[[0,1],[1,1],[2,1],[2,2]]] },
+  { id: 'S', color: '#f43f5e', rotations: [[[1,0],[2,0],[0,1],[1,1]],[[1,0],[1,1],[2,1],[2,2]],[[1,1],[2,1],[0,2],[1,2]],[[0,0],[0,1],[1,1],[1,2]]] },
+  { id: 'Z', color: '#0ea5e9', rotations: [[[0,0],[1,0],[1,1],[2,1]],[[2,0],[1,1],[2,1],[1,2]],[[0,1],[1,1],[1,2],[2,2]],[[1,0],[0,1],[1,1],[0,2]]] },
 ];
 
 function TetrisGame({ onBack }) {
-  const DURATION = 40;
   const [phase, setPhase] = useState('ready');
   const [grid, setGrid] = useState(emptyGrid());
   const [cleared, setCleared] = useState(0);
-  const [timer, setTimer] = useState(DURATION);
+  const [level, setLevel] = useState(1);
   const [currentPiece, setCurrentPiece] = useState(null);
   const [nextPiece, setNextPiece] = useState(() => TETROMINOES[Math.floor(Math.random() * TETROMINOES.length)]);
   const [pieceX, setPieceX] = useState(2);
@@ -544,32 +617,26 @@ function TetrisGame({ onBack }) {
   const [rotation, setRotation] = useState(0);
   const clearedRef = useRef(0);
   const gravityRef = useRef(null);
-  const timerRef = useRef(null);
 
   useEffect(() => {
-    return () => {
-      if (gravityRef.current) clearInterval(gravityRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => { if (gravityRef.current) clearInterval(gravityRef.current); };
   }, []);
 
   useEffect(() => {
     if (phase !== 'playing') return;
+    updateGravity();
+    return () => { if (gravityRef.current) clearInterval(gravityRef.current); };
+  }, [phase, level]);
 
+  const updateGravity = () => {
     if (gravityRef.current) clearInterval(gravityRef.current);
-    gravityRef.current = setInterval(() => {
-      handleDown();
-    }, 700);
+    const speed = Math.max(100, 800 - (level - 1) * 100);
+    gravityRef.current = setInterval(() => handleDown(), speed);
+  };
 
-    return () => {
-      if (gravityRef.current) clearInterval(gravityRef.current);
-    };
-  }, [phase]);
-
-  // Award once when done
   useEffect(() => {
     if (phase === 'done') {
-      gameStore.awardMiniGame('tetris_tap', clearedRef.current * 40);
+      gameStore.awardMiniGame('tetris_tap', clearedRef.current * 50 + (level - 1) * 200);
     }
   }, [phase]);
 
@@ -611,7 +678,6 @@ function TetrisGame({ onBack }) {
       setPhase('done');
       return;
     }
-
     setCurrentPiece(next);
     setNextPiece(randomPiece());
     setPieceX(startX);
@@ -621,17 +687,17 @@ function TetrisGame({ onBack }) {
 
   const lockPiece = () => {
     if (!currentPiece) return;
-
     setGrid(prev => {
       const withPiece = mergePiece(currentPiece, pieceX, pieceY, rotation, prev);
       const { board: clearedGrid, rowsCleared } = clearRows(withPiece);
       if (rowsCleared > 0) {
         clearedRef.current += rowsCleared;
         setCleared(clearedRef.current);
+        const newLevel = Math.floor(clearedRef.current / 5) + 1;
+        if (newLevel !== level) setLevel(newLevel);
       }
       return clearedGrid;
     });
-
     setCurrentPiece(null);
     setTimeout(spawnPiece, 0);
   };
@@ -669,37 +735,20 @@ function TetrisGame({ onBack }) {
     clearedRef.current = 0;
     setGrid(emptyGrid());
     setCleared(0);
-    setTimer(DURATION);
+    setLevel(1);
     setPhase('playing');
     setCurrentPiece(null);
     setNextPiece(randomPiece());
-
-    if (gravityRef.current) clearInterval(gravityRef.current);
-    if (timerRef.current) clearInterval(timerRef.current);
-
     setTimeout(() => spawnPiece(), 0);
-
-    timerRef.current = setInterval(() => {
-      setTimer(t => {
-        const next = t - 1;
-        if (next <= 0) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (gravityRef.current) clearInterval(gravityRef.current);
-          setTimeout(() => setPhase('done'), 0);
-          return 0;
-        }
-        return next;
-      });
-    }, 1000);
   };
 
   if (phase === 'done') return (
     <View style={tw`flex-1 items-center justify-center px-6`}>
       <Text style={tw`text-6xl mb-4`}>🟦</Text>
-      <Text style={tw`text-2xl font-black text-slate-800 mb-1`}>Time's Up!</Text>
-      <Text style={tw`text-slate-500 mb-6`}>You cleared {cleared} rows</Text>
+      <Text style={tw`text-2xl font-black text-slate-800 mb-1`}>Game Over!</Text>
+      <Text style={tw`text-slate-500 mb-6 text-center`}>Rows cleared: {cleared} · Level {level}</Text>
       <TouchableOpacity onPress={start} style={tw`w-full bg-primary py-4 rounded-2xl items-center mb-3`}>
-        <Text style={tw`text-white font-black`}>Play Again</Text>
+        <Text style={tw`text-white font-black`}>Try Again</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onBack} style={tw`w-full bg-slate-100 py-3 rounded-2xl items-center`}>
         <Text style={tw`text-slate-600 font-bold`}>Back to Hub</Text>
@@ -713,75 +762,68 @@ function TetrisGame({ onBack }) {
         <TouchableOpacity onPress={onBack} style={tw`w-8 h-8 bg-slate-100 rounded-full items-center justify-center`}>
           <Text style={tw`font-black text-slate-600`}>←</Text>
         </TouchableOpacity>
-        <Text style={tw`text-sm font-black text-slate-700`}>Tetris Tap</Text>
-        {phase === 'playing'
-          ? <Text style={tw`text-sm font-black text-red-500`}>{timer}s</Text>
-          : <View style={tw`w-8`} />
-        }
+        <Text style={tw`text-sm font-black text-slate-700`}>Tetris Extreme</Text>
+        <View style={tw`bg-blue-100 px-3 py-1 rounded-full`}>
+           <Text style={tw`text-[10px] font-black text-blue-700 uppercase`}>Level {level}</Text>
+        </View>
       </View>
 
       {phase === 'ready' ? (
         <View style={tw`flex-1 items-center justify-center gap-4`}>
           <Text style={tw`text-5xl`}>🟦</Text>
-          <Text style={tw`text-base font-black text-slate-700 text-center`}>Real Tetris mode: move, rotate, and lock pieces.</Text>
-          <Text style={tw`text-xs text-slate-500 text-center px-4`}>Use controls to guide falling tetrominoes. Clear rows for points.</Text>
+          <Text style={tw`text-lg font-black text-slate-700 text-center`}>Endless Tetris</Text>
+          <Text style={tw`text-xs text-slate-500 text-center px-4 mb-4`}>No timer. Speed increases every 5 rows. Don't let the blocks reach the top!</Text>
           <TouchableOpacity onPress={start} style={tw`bg-blue-500 px-10 py-4 rounded-2xl`}>
-            <Text style={tw`text-white font-black text-base`}>Start!</Text>
+            <Text style={tw`text-white font-black text-base`}>Play Now!</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={tw`flex-1 items-center`}>
-          <View style={tw`flex-row justify-between w-full mb-3 bg-white border border-slate-200 rounded-xl px-4 py-2`}>
+          <View style={tw`flex-row justify-between w-full mb-3 bg-white border border-slate-200 rounded-xl px-4 py-2 opacity-90 shadow-sm`}>
             <Text style={tw`font-black text-blue-600`}>Rows: {cleared}</Text>
-            <Text style={tw`font-black text-slate-500`}>{timer}s left</Text>
+            <Text style={tw`font-black text-slate-400 uppercase text-[10px]`}>Speed: Lv{level}</Text>
           </View>
 
-          <View style={{ borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
+          <View style={{ borderWidth: 2, borderColor: '#cbd5e1', borderRadius: 12, overflow: 'hidden', marginBottom: 12, backgroundColor: '#f1f5f9' }}>
             {grid.map((row, r) => (
               <View key={r} style={{ flexDirection: 'row' }}>
                 {row.map((cell, c) => {
                   let active = cell;
+                  let color = cell === 1 ? '#475569' : '#f8fafc';
                   if (currentPiece) {
                     currentPiece.rotations[rotation].forEach(([cx, cy]) => {
-                      if (pieceY + cy === r && pieceX + cx === c) active = 2;
+                      if (pieceY + cy === r && pieceX + cx === c) {
+                        active = 2;
+                        color = currentPiece.color;
+                      }
                     });
                   }
-                  const colors = [ '#f1f5f9', '#0ea5e9', '#22c55e' ];
                   return (
-                    <View
-                      key={c}
-                      style={{
-                        width: 30,
-                        height: 18,
-                        margin: 1,
-                        borderRadius: 2,
-                        backgroundColor: active === 0 ? '#f1f5f9' : active === 1 ? '#ec5b13' : '#3b82f6',
-                      }}
-                    />
+                    <View key={c} style={{ width: 34, height: 20, margin: 1, borderRadius: 2, backgroundColor: color, borderBottomWidth: active ? 2 : 0, borderBottomColor: 'rgba(0,0,0,0.1)' }} />
                   );
                 })}
               </View>
             ))}
           </View>
 
-          <View style={tw`w-full flex-row justify-between items-center mb-3 px-2`}>
-            <View style={tw`bg-white border border-slate-200 rounded-xl p-2`}> 
-              <Text style={tw`text-xs text-slate-500 mb-1`}>Next</Text>
-              <View style={{ width: 80, height: 80, backgroundColor: '#f8fafc', borderRadius: 8, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={tw`w-full flex-row justify-between items-center mb-4 px-2`}>
+            <View style={tw`bg-white border border-slate-200 rounded-xl p-2 items-center`}> 
+              <Text style={tw`text-[9px] font-black text-slate-400 uppercase mb-1`}>Next</Text>
+              <View style={{ width: 60, height: 60, backgroundColor: '#f8fafc', borderRadius: 8, justifyContent: 'center', alignItems: 'center' }}>
                 {nextPiece && nextPiece.rotations[0].map(([cx, cy], idx) => (
-                  <View key={idx} style={{ position: 'absolute', left: 8 + cx * 16, top: 8 + cy * 16, width: 14, height: 14, borderRadius: 2, backgroundColor: nextPiece.color }} />
+                  <View key={idx} style={{ position: 'absolute', left: 4 + cx * 12, top: 4 + cy * 12, width: 10, height: 10, borderRadius: 2, backgroundColor: nextPiece.color }} />
                 ))}
               </View>
             </View>
             <View style={tw`flex-row gap-2`}>
-              <TouchableOpacity onPress={() => movePiece(-1)} style={tw`bg-slate-200 px-4 py-3 rounded-xl`}><Text>◀</Text></TouchableOpacity>
-              <TouchableOpacity onPress={rotatePiece} style={tw`bg-slate-200 px-4 py-3 rounded-xl`}><Text>⟳</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => movePiece(1)} style={tw`bg-slate-200 px-4 py-3 rounded-xl`}><Text>▶</Text></TouchableOpacity>
-              <TouchableOpacity onPress={hardDrop} style={tw`bg-blue-500 px-4 py-3 rounded-xl`}><Text style={tw`text-white`}>▼</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => movePiece(-1)} style={tw`bg-slate-200 w-12 h-12 rounded-xl items-center justify-center active:bg-slate-300`}><Text style={tw`text-lg`}>◀</Text></TouchableOpacity>
+              <TouchableOpacity onPress={rotatePiece} style={tw`bg-slate-200 w-12 h-12 rounded-xl items-center justify-center active:bg-slate-300`}><Text style={tw`text-lg`}>⟳</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => movePiece(1)} style={tw`bg-slate-200 w-12 h-12 rounded-xl items-center justify-center active:bg-slate-300`}><Text style={tw`text-lg`}>▶</Text></TouchableOpacity>
+              <TouchableOpacity onPress={hardDrop} style={tw`bg-blue-500 w-12 h-12 rounded-xl items-center justify-center active:scale-90`}><Text style={tw`text-white text-lg`}>▼</Text></TouchableOpacity>
             </View>
           </View>
 
-          <Text style={tw`text-xs text-slate-400`}>Piece falls automatically. Clear full rows to score more.</Text>
+          <Text style={tw`text-[10px] text-slate-400 font-bold uppercase tracking-tighter`}>Level up every 5 rows · Don't hit the top!</Text>
         </View>
       )}
     </View>

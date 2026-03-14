@@ -222,15 +222,17 @@ class GameEngine {
   _getFactorySpeed(gameState) { return 1 + this._getStaffBonus(gameState, 'factorySpeed'); }
 
   _getFactoryConcurrency(gameState) {
-    const base = Math.max(1, gameState.factorySlots || 1);
+    const slots = Math.max(1, gameState.factorySlots || 1);
     const expansionBonus = Math.floor((gameState.factoryLevel || 1) / 2);
-    return base + expansionBonus;
+    // simultaneous production based on slots and factory expansion level
+    return slots + expansionBonus;
   }
 
   _getFactoryQueueDepth(gameState) {
     const slots = Math.max(1, gameState.factorySlots || 1);
     const levelBonus = Math.max(1, gameState.factoryLevel || 1);
-    return slots * (1 + levelBonus);
+    // queue number based on slots and degree of expansion
+    return slots * 2 + levelBonus * 3;
   }
 
   getPriceMultiplier() { return this._getPriceMultiplier(this.G); }
@@ -455,10 +457,33 @@ class GameEngine {
       });
     }
 
-    // FIX: Auto-craft for contracts — only queue if queue has space AND we don't already
-    // have enough of the required item being produced or in stock
-    if (G.staff.some(s => s.assignedTask === 'factory') && G.tick % 20 === 0) {
-      this._autoCraftForContracts();
+    // Auto-craft (factory-assigned staff)
+    if (G.staff.some(s => s.assignedTask === 'factory') && G.tick % 15 === 0) {
+      this._autoFactoryLogic();
+    }
+  }
+
+  _autoFactoryLogic() {
+    // 1. Prioritize Contracts
+    const contractSatisfied = this._autoCraftForContracts();
+    if (contractSatisfied) return;
+
+    // 2. If no contracts can be filled, do general auto-production
+    // Only if queue has decent space left
+    const G = this.G;
+    const maxQueue = this._getFactoryQueueDepth(G);
+    if (G.factoryQueue.length >= maxQueue - 1) return;
+
+    // Find all recipes we can currently afford and have unlocked
+    const available = RECIPES.filter(r => 
+      r.unlockLevel <= (G.factoryLevel || 1) &&
+      Object.entries(r.inputs).every(([k, v]) => (G.inv[k] || 0) >= v + 10) // Keep a buffer of 10 items
+    );
+
+    if (available.length > 0) {
+      // Prioritize by sell price (tier logic)
+      const sorted = available.sort((a, b) => b.sellPrice - a.sellPrice);
+      this.queueRecipe(sorted[0].id);
     }
   }
 
@@ -469,7 +494,7 @@ class GameEngine {
   _autoCraftForContracts() {
     const G = this.G;
     const openContracts = G.contracts.filter(c => !c.accepted);
-    if (!openContracts.length) return;
+    if (!openContracts.length) return false;
 
     // First, try to fulfil any contract already satisfied by current inventory
     for (const contract of openContracts) {
@@ -495,9 +520,10 @@ class GameEngine {
       const canMake = Object.entries(recipe.inputs).every(([k, v]) => (G.inv[k] || 0) >= v);
       if (canMake) {
         this.queueRecipe(recipe.id);
-        return; // one recipe per cycle
+        return true; 
       }
     }
+    return false;
   }
 
   assignStaffTask(staffId, task) {

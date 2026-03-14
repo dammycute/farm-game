@@ -65,7 +65,7 @@ export default function FactoryZone({ gameState }) {
       {/* Queue */}
       <View style={tw`mb-6`}>
         <Text style={tw`text-xs font-interBlack text-slate-800 uppercase tracking-wider mb-2 px-1`}>
-            Processing Queue ({gameState.factoryQueue.length}/{gameState.factorySlots} Slots)
+            Processing Queue ({gameState.factoryQueue.length}/{gameStore._getFactoryQueueDepth(gameState)})
         </Text>
         {gameState.factoryQueue.length === 0 ? (
             <View style={tw`bg-white rounded-2xl p-6 items-center shadow-sm border border-slate-200`}>
@@ -74,7 +74,7 @@ export default function FactoryZone({ gameState }) {
         ) : (
             <View style={tw`flex-col gap-2`}>
                 {gameState.factoryQueue.map((j, i) => {
-                    const active = i < gameState.factorySlots;
+                    const active = i < gameStore._getFactoryConcurrency(gameState);
                     const pct = Math.min(100, (j.progress || 0) * 100);
                     return (
                         <View key={j.id} style={tw`bg-white rounded-xl p-3 shadow-sm border ${active ? 'border-primary/50' : 'border-slate-200'} flex-row items-center gap-3`}>

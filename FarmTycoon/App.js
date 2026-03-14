@@ -16,6 +16,8 @@ import TrucksZone from './src/components/TrucksZone';
 import FinanceZone from './src/components/FinanceZone';
 import { ToastRenderer, FloatRenderer, LevelCompleteModal } from './src/components/OverlayKit';
 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -27,7 +29,9 @@ export default function App() {
   const [tab, setTab] = useState('farm');
 
   return (
-    <View style={tw`flex-1 bg-slate-100 items-center`}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={tw`flex-1 bg-slate-100 items-center`}>
+
       <StatusBar style="auto" />
       <View style={tw`flex-1 w-full max-w-md bg-white shadow-2xl relative overflow-hidden`}>
         <Header gameState={gameState} setTab={setTab} />
@@ -47,7 +51,8 @@ export default function App() {
         </View>
 
         <BottomNav tab={tab} setTab={setTab} />
+        </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
